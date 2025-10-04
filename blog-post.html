@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>פוסט - מאיה קורן שכטמן</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .blog-post-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 2rem;
+            line-height: 1.2;
+            text-align: center;
+        }
+        
+        .blog-post-meta {
+            color: var(--text-light);
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .blog-post-content {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+        
+        /* Ensure the about-section background extends to footer */
+        .about-section {
+            padding: 4rem 0 6rem 0;
+            margin-top: 0;
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 50%, rgba(208, 229, 222, 0.3) 100%);
+        }
+        
+        /* Ensure no white background shows through */
+        .main-content {
+            background: transparent;
+            padding: 0;
+        }
+        
+        /* Ensure body doesn't have white background showing */
+        body {
+            background: var(--primary-color);
+        }
+        
+        
+        .blog-post-content p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .blog-post-content h1,
+        .blog-post-content h2,
+        .blog-post-content h3 {
+            color: var(--text-dark);
+            margin: 2rem 0 1rem 0;
+        }
+        
+        .blog-post-content h1 {
+            font-size: 2rem;
+        }
+        
+        .blog-post-content h2 {
+            font-size: 1.6rem;
+        }
+        
+        .blog-post-content h3 {
+            font-size: 1.3rem;
+        }
+        
+        .blog-post-content ul,
+        .blog-post-content ol {
+            color: var(--text-light);
+            line-height: 1.8;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            padding-right: 2rem;
+        }
+        
+        .blog-post-content li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+        
+        .error {
+            text-align: center;
+            padding: 3rem;
+            color: #dc3545;
+            font-size: 1.2rem;
+        }
+        
+        .not-found {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .blog-post-title {
+                font-size: 2.2rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .blog-post-meta {
+                font-size: 1.1rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .blog-post-content {
+                font-size: 1rem;
+                line-height: 1.6;
+            }
+            
+            .about-section {
+                padding: 2rem 0 4rem 0;
+                margin-top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <h2>מאיה קורן שכטמן</h2>
+                </div>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link">בית</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/aboutme" class="nav-link">עליי</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/treatment" class="nav-link">על הטיפול</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/sleep-medicine" class="nav-link">שינה ורופאה סינית</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/blog" class="nav-link active">בלוג</a>
+                    </li>
+                </ul>
+                <div class="hamburger">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <section class="about-section">
+            <div class="container">
+                <!-- Image at the top -->
+                <div class="about-image-top" id="postImageContainer" style="display: none;">
+                    <div class="image-container">
+                        <div class="image-wrapper">
+                            <img id="postImage" alt="Blog Post Image" class="about-main-image">
+                            <div class="image-overlay"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post content -->
+                <div class="about-text-content">
+                    <a href="/blog" class="back-to-blog" style="display: inline-block; margin-bottom: 2rem; color: var(--text-dark); text-decoration: none; font-weight: 600;">← חזרה לבלוג</a>
+                    
+                    <div id="postContent">
+                        <div class="loading">טוען פוסט...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <span class="contact-label">שם:</span>
+                            <span class="contact-value">מאיה קורן שכטמן</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-label">טלפון:</span>
+                            <span class="contact-value">050-123-4567</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-label">אימייל:</span>
+                            <span class="contact-value">maya@example.com</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-label">כתובת:</span>
+                            <span class="contact-value">רחוב הרצל 123, תל אביב</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 מאיה קורן שכטמן - שינה ורפואה סינית. כל הזכויות שמורות.</p>
+            </div>
+            
+            <!-- Mobile Contact Buttons -->
+            <div class="mobile-contact-buttons">
+                <a href="tel:050-123-4567" class="contact-btn phone-btn" title="התקשרו אלינו">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                    </svg>
+                </a>
+                <a href="https://wa.me/972501234567" class="contact-btn whatsapp-btn" title="שלחו הודעה בוואטסאפ" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                    </svg>
+                </a>
+                <a href="mailto:maya@example.com" class="contact-btn email-btn" title="שלחו אימייל">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="assets/js/script.js"></script>
+    <script>
+        // Helper function to convert markdown to HTML
+        function parseMarkdown(content) {
+            if (!content) return '';
+            // Configure marked options
+            marked.setOptions({
+                breaks: true, // Convert \n to <br>
+                gfm: true, // GitHub Flavored Markdown
+            });
+            return marked.parse(content);
+        }
+
+        // Get post ID from URL
+        const pathParts = window.location.pathname.split('/');
+        const postId = pathParts[pathParts.length - 1];
+        
+        // DOM elements
+        const postContent = document.getElementById('postContent');
+
+        // Load post on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (postId && !isNaN(postId)) {
+                loadPost(postId);
+            } else {
+                showError('פוסט לא נמצא');
+            }
+        });
+
+        // Load post from API
+        async function loadPost(id) {
+            try {
+                const response = await fetch(`/api/blog/posts/${id}`);
+                
+                if (response.status === 404) {
+                    showNotFound();
+                    return;
+                }
+                
+                const post = await response.json();
+                displayPost(post);
+            } catch (error) {
+                console.error('Error loading post:', error);
+                showError('שגיאה בטעינת הפוסט');
+            }
+        }
+
+        // Display post
+        function displayPost(post) {
+            const postDate = new Date(post.created_at).toLocaleDateString('he-IL');
+            const imageContainer = document.getElementById('postImageContainer');
+            const postImage = document.getElementById('postImage');
+            
+            // Show image if it exists
+            if (post.image_url) {
+                postImage.src = post.image_url;
+                postImage.alt = post.title;
+                imageContainer.style.display = 'block';
+            } else {
+                imageContainer.style.display = 'none';
+            }
+            
+            postContent.innerHTML = `
+                <h1 class="blog-post-title">${post.title}</h1>
+                <div class="blog-post-meta">
+                    <div>מאת: ${post.author}</div>
+                    <div>פורסם: ${postDate}</div>
+                </div>
+                
+                <div class="blog-post-content">
+                    ${parseMarkdown(post.content)}
+                </div>
+            `;
+            
+            // Update page title
+            document.title = `${post.title} - מאיה קורן שכטמן`;
+        }
+
+        // Show error message
+        function showError(message) {
+            postContent.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        // Show not found message
+        function showNotFound() {
+            postContent.innerHTML = `
+                <div class="not-found">
+                    <h2>פוסט לא נמצא</h2>
+                    <p>הפוסט המבוקש לא קיים או נמחק.</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

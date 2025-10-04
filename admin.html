@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מנהל - מאיה קורן שכטמן</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .admin-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--primary-color), rgba(208, 229, 222, 0.3));
+            border-radius: 20px;
+        }
+        
+        .admin-header h1 {
+            font-size: 2.5rem;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+        
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: var(--secondary-color);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px var(--shadow-light);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--text-dark);
+            color: var(--secondary-color);
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: #555;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background-color: var(--primary-color);
+            color: var(--text-dark);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--accent-color);
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .dashboard {
+            display: none;
+        }
+        
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--primary-color), rgba(208, 229, 222, 0.3));
+            border-radius: 20px;
+            box-shadow: 0 10px 30px var(--shadow-light);
+        }
+        
+        .dashboard-header h1 {
+            font-size: 2.5rem;
+            color: var(--text-dark);
+            margin: 0;
+        }
+        
+        .management-selection {
+            background: var(--secondary-color);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px var(--shadow-light);
+        }
+        
+        .management-selection h2 {
+            color: var(--text-dark);
+            margin: 0 0 1.5rem 0;
+            font-size: 1.8rem;
+        }
+        
+        .selection-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .selection-card {
+            background: linear-gradient(135deg, var(--primary-color), rgba(208, 229, 222, 0.5));
+            padding: 2.5rem;
+            border-radius: 20px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            border: 2px solid transparent;
+            box-shadow: 0 5px 20px var(--shadow-light);
+        }
+        
+        .selection-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+            box-shadow: 0 15px 40px var(--shadow-light);
+        }
+        
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .selection-card h3 {
+            color: var(--text-dark);
+            margin: 0 0 0.8rem 0;
+            font-size: 1.5rem;
+        }
+        
+        .selection-card p {
+            color: var(--text-light);
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .card-arrow {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            font-size: 1.5rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .selection-card:hover .card-arrow {
+            opacity: 1;
+            left: 1.5rem;
+        }
+        
+        .statistics-section {
+            background: var(--secondary-color);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px var(--shadow-light);
+        }
+        
+        .statistics-section h2 {
+            color: var(--text-dark);
+            margin: 0 0 1.5rem 0;
+            font-size: 1.8rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--primary-color);
+            padding: 1.5rem;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 5px 15px var(--shadow-light);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px var(--shadow-light);
+        }
+        
+        .stat-icon {
+            font-size: 2.5rem;
+        }
+        
+        .stat-info {
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.3rem;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        
+        .page-visits {
+            background: var(--primary-color);
+            padding: 2rem;
+            border-radius: 15px;
+        }
+        
+        .page-visits h3 {
+            color: var(--text-dark);
+            margin: 0 0 1.5rem 0;
+            font-size: 1.3rem;
+        }
+        
+        .visits-list {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .visit-item {
+            background: var(--secondary-color);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px var(--shadow-light);
+        }
+        
+        .visit-page {
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .visit-count {
+            background: var(--text-dark);
+            color: var(--secondary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .section-title h2 {
+            color: var(--text-dark);
+            margin: 0 0 0.5rem 0;
+            font-size: 1.8rem;
+        }
+        
+        .section-title p {
+            color: var(--text-light);
+            margin: 0;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: var(--text-dark);
+            color: var(--secondary-color);
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: #555;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow-light);
+        }
+        
+        .btn-primary span {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .content-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .post-item, .page-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem;
+            background: var(--primary-color);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px var(--shadow-light);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .post-item:hover, .page-item:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-color);
+            box-shadow: 0 10px 25px var(--shadow-light);
+        }
+        
+        .post-info, .page-info {
+            flex: 1;
+        }
+        
+        .post-info h3, .page-info h3 {
+            margin: 0 0 0.8rem 0;
+            color: var(--text-dark);
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .post-excerpt, .page-excerpt {
+            color: var(--text-light);
+            margin: 0.5rem 0;
+            line-height: 1.5;
+        }
+        
+        .post-meta, .page-meta {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-top: 0.5rem;
+        }
+        
+        .post-actions, .page-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn-small {
+            padding: 0.8rem 1.5rem;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        
+        .no-posts, .no-pages {
+            text-align: center;
+            color: var(--text-light);
+            font-style: italic;
+            padding: 3rem;
+            background: var(--primary-color);
+            border-radius: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .loading {
+            text-align: center;
+            color: var(--text-light);
+            padding: 3rem;
+            font-size: 1.1rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: var(--secondary-color);
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-header h3 {
+            color: var(--text-dark);
+        }
+        
+        .close {
+            color: var(--text-light);
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: var(--text-dark);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .success-message {
+            color: #28a745;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+        }
+        
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 1rem;
+            }
+            
+            .admin-header h1 {
+                font-size: 2rem;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .management-tabs {
+                flex-direction: column;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+            
+            .post-item, .page-item {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .post-actions, .page-actions {
+                justify-content: center;
+            }
+            
+            .post-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Login Form -->
+        <div id="loginForm" class="login-form">
+            <div class="admin-header">
+                <h1>מנהל האתר</h1>
+                <p>התחברו לניהול הבלוג</p>
+            </div>
+            
+            <form id="loginFormElement">
+                <div class="form-group">
+                    <label for="username">שם משתמש:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">סיסמה:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn">התחבר</button>
+                <div id="loginError" class="error-message" style="display: none;"></div>
+            </form>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="dashboard">
+            <div class="dashboard-header">
+                <h1>לוח בקרה</h1>
+                <button id="logoutBtn" class="btn btn-secondary">התנתק</button>
+            </div>
+
+            <!-- Management Selection Cards -->
+            <div class="management-selection">
+                <h2>ניהול תוכן</h2>
+                <div class="selection-cards">
+                    <a href="/admin/blog-management" class="selection-card">
+                        <div class="card-icon">📝</div>
+                        <h3>ניהול בלוג</h3>
+                        <p>צור וערוך פוסטים בבלוג</p>
+                        <span class="card-arrow">←</span>
+                    </a>
+                    <a href="/admin/pages-management" class="selection-card">
+                        <div class="card-icon">📄</div>
+                        <h3>ניהול דפי האתר</h3>
+                        <p>ערוך את תוכן דפי האתר</p>
+                        <span class="card-arrow">←</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Statistics Section -->
+            <div class="statistics-section">
+                <h2>סטטיסטיקות האתר</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👁️</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="totalVisits">-</div>
+                            <div class="stat-label">סך כל הביקורים</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="totalPosts">-</div>
+                            <div class="stat-label">פוסטים בבלוג</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📄</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="totalPages">4</div>
+                            <div class="stat-label">דפי אתר</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="popularPage">-</div>
+                            <div class="stat-label">הדף הפופולרי ביותר</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page Visits Detail -->
+                <div class="page-visits">
+                    <h3>ביקורים לפי דפים</h3>
+                    <div id="pageVisitsList" class="visits-list">
+                        <div class="loading">טוען נתונים...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Global variables
+        let currentPosts = [];
+        let isEditMode = false;
+        let currentImageUrl = '';
+
+        // DOM elements
+        const loginForm = document.getElementById('loginForm');
+        const dashboard = document.getElementById('dashboard');
+        const loginFormElement = document.getElementById('loginFormElement');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const postsList = document.getElementById('postsList');
+        const addPostBtn = document.getElementById('addPostBtn');
+        const postModal = document.getElementById('postModal');
+        const postForm = document.getElementById('postForm');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeModal = document.querySelector('.close');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const postImage = document.getElementById('postImage');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+        const removeImage = document.getElementById('removeImage');
+        const postImageUrl = document.getElementById('postImageUrl');
+
+        // Check authentication status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+            setupImageHandlers();
+        });
+
+        // Setup image upload handlers
+        function setupImageHandlers() {
+            postImage.addEventListener('change', handleImageSelect);
+            removeImage.addEventListener('click', removeImagePreview);
+        }
+
+        // Handle image selection
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('אנא בחר קובץ תמונה בלבד');
+                    return;
+                }
+                
+                // Validate file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('גודל הקובץ חייב להיות קטן מ-5MB');
+                    return;
+                }
+                
+                uploadImage(file);
+            }
+        }
+
+        // Upload image to server
+        async function uploadImage(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const response = await fetch('/api/admin/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentImageUrl = data.imageUrl;
+                    postImageUrl.value = currentImageUrl;
+                    showImagePreview(data.imageUrl);
+                } else {
+                    alert('שגיאה בהעלאת התמונה: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('שגיאה בהעלאת התמונה');
+            }
+        }
+
+        // Show image preview
+        function showImagePreview(imageUrl) {
+            previewImg.src = imageUrl;
+            imagePreview.style.display = 'block';
+        }
+
+        // Remove image preview
+        function removeImagePreview() {
+            imagePreview.style.display = 'none';
+            postImage.value = '';
+            postImageUrl.value = '';
+            currentImageUrl = '';
+        }
+
+        // Check if user is authenticated
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch('/api/admin/status');
+                const data = await response.json();
+                
+                if (data.authenticated) {
+                    showDashboard();
+                    loadPosts();
+                    loadPages();
+                } else {
+                    showLoginForm();
+                }
+            } catch (error) {
+                console.error('Error checking auth status:', error);
+                showLoginForm();
+            }
+        }
+
+        // Show login form
+        function showLoginForm() {
+            loginForm.style.display = 'block';
+            dashboard.style.display = 'none';
+        }
+
+        // Show dashboard
+        function showDashboard() {
+            loginForm.style.display = 'none';
+            dashboard.style.display = 'block';
+        }
+
+        // Login form submission
+        loginFormElement.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showDashboard();
+                    loadPosts();
+                    loadPages();
+                } else {
+                    errorDiv.textContent = data.error || 'שגיאה בהתחברות';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorDiv.textContent = 'שגיאה בהתחברות לשרת';
+                errorDiv.style.display = 'block';
+            }
+        });
+
+        // Logout
+        logoutBtn.addEventListener('click', async function() {
+            try {
+                await fetch('/api/admin/logout', { method: 'POST' });
+                showLoginForm();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+
+        // Load posts
+        async function loadPosts() {
+            try {
+                const response = await fetch('/api/admin/blog/posts');
+                const posts = await response.json();
+                currentPosts = posts;
+                displayPosts(posts);
+            } catch (error) {
+                console.error('Error loading posts:', error);
+                postsList.innerHTML = '<div class="error-message">שגיאה בטעינת הפוסטים</div>';
+            }
+        }
+
+        // Display posts
+        function displayPosts(posts) {
+            const postsList = document.getElementById('postsList');
+            
+            if (posts.length === 0) {
+                postsList.innerHTML = '<div class="no-posts">אין פוסטים זמינים</div>';
+                return;
+            }
+
+            postsList.innerHTML = posts.map(post => `
+                <div class="post-item">
+                    <div class="post-info">
+                        ${post.image_url ? `<img src="${post.image_url}" alt="${post.title}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-left: 1rem; float: right;">` : ''}
+                        <h3>${post.title}</h3>
+                        <p class="post-excerpt">${post.excerpt || 'ללא תקציר'}</p>
+                        <div class="post-meta">
+                            <span>נוצר: ${new Date(post.created_at).toLocaleDateString('he-IL')} | ${post.published ? 'פורסם' : 'לא פורסם'}</span>
+                        </div>
+                    </div>
+                    <div class="post-actions">
+                        <a href="/admin/edit-post?id=${post.id}" class="btn btn-small">ערוך</a>
+                        <button class="btn btn-small btn-danger" onclick="deletePost(${post.id})">מחק</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+
+
+        // Delete post
+        async function deletePost(id) {
+            if (!confirm('האם אתם בטוחים שברצונכם למחוק את הפוסט?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/blog/posts/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    loadPosts();
+                } else {
+                    alert('שגיאה במחיקת הפוסט: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('שגיאה במחיקת הפוסט');
+            }
+        }
+
+        // Post form submission
+        postForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(postForm);
+            const postData = {
+                title: formData.get('title'),
+                content: formData.get('content'),
+                excerpt: formData.get('excerpt'),
+                image_url: formData.get('image_url'),
+                published: formData.get('published') === 'on'
+            };
+
+            const errorDiv = document.getElementById('formError');
+            errorDiv.style.display = 'none';
+
+            try {
+                let response;
+                if (isEditMode) {
+                    const id = document.getElementById('postId').value;
+                    response = await fetch(`/api/admin/blog/posts/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(postData)
+                    });
+                } else {
+                    response = await fetch('/api/admin/blog/posts', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(postData)
+                    });
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    postModal.style.display = 'none';
+                    loadPosts();
+                } else {
+                    errorDiv.textContent = data.error || 'שגיאה בשמירת הפוסט';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                errorDiv.textContent = 'שגיאה בשמירת הפוסט';
+                errorDiv.style.display = 'block';
+            }
+        });
+
+        // Close modal
+        closeModal.addEventListener('click', function() {
+            postModal.style.display = 'none';
+        });
+
+        cancelBtn.addEventListener('click', function() {
+            postModal.style.display = 'none';
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(e) {
+            if (e.target === postModal) {
+                postModal.style.display = 'none';
+            }
+            if (e.target === pageModal) {
+                pageModal.style.display = 'none';
+            }
+        });
+
+        // Page Management
+        let currentPages = [];
+        let currentPageImageUrl = '';
+
+        // Load pages
+        async function loadPages() {
+            try {
+                const response = await fetch('/api/admin/pages');
+                const pages = await response.json();
+                currentPages = pages;
+                displayPages(pages);
+            } catch (error) {
+                console.error('Error loading pages:', error);
+                document.getElementById('pagesList').innerHTML = '<div class="error">שגיאה בטעינת הדפים</div>';
+            }
+        }
+
+        // Display pages
+        function displayPages(pages) {
+            const pagesList = document.getElementById('pagesList');
+            
+            if (pages.length === 0) {
+                pagesList.innerHTML = '<div class="no-pages">אין דפים זמינים</div>';
+                return;
+            }
+
+            const pageNames = {
+                'home': 'דף הבית',
+                'about': 'עליי',
+                'treatment': 'על הטיפול',
+                'sleep-medicine': 'שינה ורפואה סינית'
+            };
+
+            pagesList.innerHTML = pages.map(page => `
+                <div class="page-item">
+                    <div class="page-info">
+                        <h3>${pageNames[page.page_key] || page.page_key}</h3>
+                        <p class="page-excerpt">${page.title}</p>
+                        <div class="page-meta">
+                            <span>עודכן: ${new Date(page.updated_at).toLocaleDateString('he-IL')}</span>
+                        </div>
+                    </div>
+                    <div class="page-actions">
+                        <a href="/admin/edit-page?key=${page.page_key}" class="btn btn-small">ערוך</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Edit page
+        function editPage(pageKey) {
+            const page = currentPages.find(p => p.page_key === pageKey);
+            if (!page) return;
+
+            document.getElementById('pageKey').value = page.page_key;
+            document.getElementById('pageTitle').value = page.title;
+            document.getElementById('pageContent').value = page.content;
+            
+            if (page.image_url) {
+                currentPageImageUrl = page.image_url;
+                document.getElementById('pageImageUrl').value = page.image_url;
+                showPageImagePreview(page.image_url);
+            } else {
+                removePageImagePreview();
+            }
+
+            pageModal.style.display = 'block';
+        }
+
+        // Page form submission
+        document.getElementById('pageForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const pageData = {
+                title: formData.get('title'),
+                content: formData.get('content'),
+                image_url: formData.get('image_url')
+            };
+
+            try {
+                const pageKey = document.getElementById('pageKey').value;
+                const response = await fetch(`/api/admin/pages/${pageKey}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(pageData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    pageModal.style.display = 'none';
+                    loadPages();
+                    // Reload the page to update menu items
+                    window.location.reload();
+                } else {
+                    document.getElementById('pageFormError').textContent = data.error || 'שגיאה בשמירת הדף';
+                    document.getElementById('pageFormError').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error saving page:', error);
+                document.getElementById('pageFormError').textContent = 'שגיאה בשמירת הדף';
+                document.getElementById('pageFormError').style.display = 'block';
+            }
+        });
+
+        // Page image handling
+        function setupPageImageHandlers() {
+            const pageImageInput = document.getElementById('pageImage');
+            const removePageImageBtn = document.getElementById('removePageImage');
+
+            pageImageInput.addEventListener('change', handlePageImageSelect);
+            removePageImageBtn.addEventListener('click', removePageImagePreview);
+        }
+
+        function handlePageImageSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                uploadPageImage(file);
+            }
+        }
+
+        async function uploadPageImage(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const response = await fetch('/api/admin/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    currentPageImageUrl = data.imageUrl;
+                    document.getElementById('pageImageUrl').value = data.imageUrl;
+                    showPageImagePreview(data.imageUrl);
+                } else {
+                    alert('שגיאה בהעלאת התמונה');
+                }
+            } catch (error) {
+                console.error('Error uploading image:', error);
+                alert('שגיאה בהעלאת התמונה');
+            }
+        }
+
+        function showPageImagePreview(imageUrl) {
+            const preview = document.getElementById('pageImagePreview');
+            const img = document.getElementById('pagePreviewImg');
+            img.src = imageUrl;
+            preview.style.display = 'block';
+        }
+
+        function removePageImagePreview() {
+            const preview = document.getElementById('pageImagePreview');
+            const input = document.getElementById('pageImage');
+            const hiddenInput = document.getElementById('pageImageUrl');
+            
+            preview.style.display = 'none';
+            input.value = '';
+            hiddenInput.value = '';
+            currentPageImageUrl = '';
+        }
+
+        // Page modal event listeners
+        document.getElementById('pageClose').addEventListener('click', function() {
+            pageModal.style.display = 'none';
+        });
+
+        document.getElementById('pageCancelBtn').addEventListener('click', function() {
+            pageModal.style.display = 'none';
+        });
+
+        // Initialize page management
+        setupPageImageHandlers();
+        
+        // Tab switching functionality
+        function initTabs() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const sections = document.querySelectorAll('.management-section');
+            
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetTab = this.dataset.tab;
+                    
+                    // Remove active class from all tabs and sections
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    sections.forEach(s => s.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding section
+                    this.classList.add('active');
+                    document.getElementById(targetTab + '-tab').classList.add('active');
+                });
+            });
+        }
+        
+        // Load dashboard statistics
+        async function loadStatistics() {
+            try {
+                // Load posts count
+                const postsResponse = await fetch('/api/admin/blog/posts');
+                const posts = await postsResponse.json();
+                document.getElementById('totalPosts').textContent = posts.length;
+                
+                // Calculate page visits (mock data for now - will implement analytics later)
+                const pageVisits = {
+                    'דף הבית': 0,
+                    'עליי': 0,
+                    'על הטיפול': 0,
+                    'שינה ורפואה סינית': 0,
+                    'בלוג': 0
+                };
+                
+                // Calculate total and most popular
+                const totalVisits = Object.values(pageVisits).reduce((a, b) => a + b, 0);
+                const popularPage = Object.entries(pageVisits).sort((a, b) => b[1] - a[1])[0];
+                
+                document.getElementById('totalVisits').textContent = totalVisits || '-';
+                document.getElementById('popularPage').textContent = popularPage ? popularPage[0] : '-';
+                
+                // Display page visits
+                const visitsList = document.getElementById('pageVisitsList');
+                if (totalVisits === 0) {
+                    visitsList.innerHTML = '<div style="text-align: center; color: var(--text-light); padding: 2rem;">אין נתוני ביקורים זמינים עדיין</div>';
+                } else {
+                    visitsList.innerHTML = Object.entries(pageVisits)
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([page, count]) => `
+                            <div class="visit-item">
+                                <span class="visit-page">${page}</span>
+                                <span class="visit-count">${count} ביקורים</span>
+                            </div>
+                        `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+        
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we're on the dashboard
+            if (document.getElementById('dashboard')) {
+                loadStatistics();
+            }
+        });
+    </script>
+</body>
+</html>

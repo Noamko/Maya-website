@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>עריכת פוסט - מאיה קורן שכטמן</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .edit-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .edit-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--primary-color), rgba(208, 229, 222, 0.3));
+            border-radius: 20px;
+        }
+        
+        .edit-header h1 {
+            font-size: 2.5rem;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+        
+        .edit-form {
+            background: var(--secondary-color);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px var(--shadow-light);
+        }
+        
+        .form-group {
+            margin-bottom: 2rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 1.1rem;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 200px;
+        }
+        
+        .rich-text-toolbar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border: 1px solid var(--border-color);
+            border-radius: 8px 8px 0 0;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-btn {
+            padding: 0.5rem 0.8rem;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .toolbar-btn:hover {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .toolbar-btn.active {
+            background: var(--text-dark);
+            color: white;
+            border-color: var(--text-dark);
+        }
+        
+        .rich-text-editor {
+            min-height: 300px;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0 0 8px 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            line-height: 1.6;
+            outline: none;
+            background: white;
+        }
+        
+        .rich-text-editor:focus {
+            border-color: var(--primary-color);
+        }
+        
+        .rich-text-editor:empty:before {
+            content: attr(data-placeholder);
+            color: #999;
+            font-style: italic;
+        }
+        
+        .rich-text-editor h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem 0;
+            color: var(--text-dark);
+        }
+        
+        .rich-text-editor h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 1.2rem 0 0.8rem 0;
+            color: var(--text-dark);
+        }
+        
+        .rich-text-editor p {
+            margin: 0.8rem 0;
+        }
+        
+        .rich-text-editor ul,
+        .rich-text-editor ol {
+            margin: 0.8rem 0;
+            padding-right: 2rem;
+        }
+        
+        .rich-text-editor li {
+            margin: 0.4rem 0;
+        }
+        
+        .rich-text-editor a {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+        
+        .rich-text-editor a:hover {
+            color: var(--text-dark);
+        }
+        
+        .image-upload {
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            transition: border-color 0.3s ease;
+        }
+        
+        .image-upload:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .image-upload input[type="file"] {
+            margin-bottom: 1rem;
+        }
+        
+        .image-preview {
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .image-preview img {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px var(--shadow-light);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 3rem;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: var(--text-dark);
+            color: var(--secondary-color);
+        }
+        
+        .btn-primary:hover {
+            background: #555;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: var(--border-color);
+            color: var(--text-dark);
+        }
+        
+        .btn-secondary:hover {
+            background: #ccc;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+        
+        @media (max-width: 768px) {
+            .edit-container {
+                padding: 1rem;
+            }
+            
+            .edit-form {
+                padding: 2rem;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="edit-container">
+        <a href="/admin" class="back-link">← חזרה לניהול</a>
+        
+        <div class="edit-header">
+            <h1 id="pageTitle">עריכת פוסט</h1>
+        </div>
+        
+        <div id="loadingDiv" class="loading">טוען פוסט...</div>
+        
+        <form id="editForm" class="edit-form" style="display: none;">
+            <input type="hidden" id="postId" name="id">
+            
+            <div class="form-group">
+                <label for="postTitle">כותרת:</label>
+                <input type="text" id="postTitle" name="title" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="postExcerpt">תקציר:</label>
+                <input type="text" id="postExcerpt" name="excerpt">
+            </div>
+            
+            <div class="form-group">
+                <label for="postImage">תמונה:</label>
+                <div class="image-upload">
+                    <input type="file" id="postImage" name="image" accept="image/*">
+                    <p>לחץ לבחירת תמונה או גרור לכאן</p>
+                    <div id="imagePreview" class="image-preview">
+                        <img id="previewImg" alt="תצוגה מקדימה">
+                        <div style="margin-top: 1rem;">
+                            <button type="button" id="removeImage" class="btn btn-danger">הסר תמונה</button>
+                        </div>
+                    </div>
+                    <input type="hidden" id="postImageUrl" name="image_url">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="postContent">תוכן:</label>
+                <p style="margin-bottom: 0.5rem; color: var(--text-light); font-size: 0.9rem;">
+                    💡 ניתן להשתמש בעורך החזותי או לכתוב ישירות בתחביר Markdown (כמו <strong>**מודגש**</strong>, <em>*נטוי*</em>, # כותרות, רשימות עם • או 1., וכו')
+                </p>
+                <div class="rich-text-toolbar">
+                    <button type="button" class="toolbar-btn" data-command="bold" title="מודגש">
+                        <strong>B</strong>
+                    </button>
+                    <button type="button" class="toolbar-btn" data-command="italic" title="נטוי">
+                        <em>I</em>
+                    </button>
+                    <button type="button" class="toolbar-btn" data-command="underline" title="קו תחתון">
+                        <u>U</u>
+                    </button>
+                    <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="רשימה">
+                        • List
+                    </button>
+                    <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="רשימה ממוספרת">
+                        1. List
+                    </button>
+                    <button type="button" class="toolbar-btn" data-command="createLink" title="קישור">
+                        🔗 Link
+                    </button>
+                    <button type="button" class="toolbar-btn" data-command="formatBlock" data-value="h2" title="כותרת">
+                        H2
+                    </button>
+                    <button type="button" class="toolbar-btn" data-command="formatBlock" data-value="h3" title="כותרת משנה">
+                        H3
+                    </button>
+                    <button type="button" class="toolbar-btn" data-command="formatBlock" data-value="p" title="פסקה">
+                        P
+                    </button>
+                </div>
+                <div id="postContent" class="rich-text-editor" contenteditable="true" data-placeholder="הקלד את תוכן הפוסט כאן..."></div>
+                <textarea id="postContentHidden" name="content" style="display: none;" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="postPublished" name="published" checked>
+                    פורסם
+                </label>
+            </div>
+            
+            <div class="form-actions">
+                <a href="/admin" class="btn btn-secondary">ביטול</a>
+                <button type="submit" class="btn btn-primary">שמור שינויים</button>
+            </div>
+            
+            <div id="formError" class="error-message"></div>
+            <div id="formSuccess" class="success-message"></div>
+        </form>
+    </div>
+
+    <script>
+        let currentImageUrl = '';
+        
+        // Get post ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('id');
+        
+        if (!postId) {
+            window.location.href = '/admin';
+        }
+        
+        // Load post data
+        async function loadPost() {
+            try {
+                const response = await fetch(`/api/admin/blog/posts/${postId}`);
+                const post = await response.json();
+                
+                if (post) {
+                    document.getElementById('postId').value = post.id;
+                    document.getElementById('postTitle').value = post.title;
+                    document.getElementById('postExcerpt').value = post.excerpt || '';
+                    
+                    // Load content into rich text editor
+                    const contentEditor = document.getElementById('postContent');
+                    contentEditor.innerHTML = post.content.replace(/\n/g, '<br>');
+                    
+                    // IMPORTANT: Sync the initial content to the hidden textarea
+                    document.getElementById('postContentHidden').value = post.content;
+                    
+                    document.getElementById('postPublished').checked = post.published;
+                    
+                    if (post.image_url) {
+                        currentImageUrl = post.image_url;
+                        document.getElementById('postImageUrl').value = post.image_url;
+                        showImagePreview(post.image_url);
+                    }
+                    
+                    document.getElementById('loadingDiv').style.display = 'none';
+                    document.getElementById('editForm').style.display = 'block';
+                } else {
+                    showError('פוסט לא נמצא');
+                }
+            } catch (error) {
+                console.error('Error loading post:', error);
+                showError('שגיאה בטעינת הפוסט');
+            }
+        }
+        
+        // Show image preview
+        function showImagePreview(imageUrl) {
+            const preview = document.getElementById('imagePreview');
+            const img = document.getElementById('previewImg');
+            img.src = imageUrl;
+            preview.style.display = 'block';
+        }
+        
+        // Remove image preview
+        function removeImagePreview() {
+            const preview = document.getElementById('imagePreview');
+            const input = document.getElementById('postImage');
+            const hiddenInput = document.getElementById('postImageUrl');
+            
+            preview.style.display = 'none';
+            input.value = '';
+            hiddenInput.value = '';
+            currentImageUrl = '';
+        }
+        
+        // Handle image upload
+        async function uploadImage(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const response = await fetch('/api/admin/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    currentImageUrl = data.imageUrl;
+                    document.getElementById('postImageUrl').value = data.imageUrl;
+                    showImagePreview(data.imageUrl);
+                } else {
+                    showError('שגיאה בהעלאת התמונה');
+                }
+            } catch (error) {
+                console.error('Error uploading image:', error);
+                showError('שגיאה בהעלאת התמונה');
+            }
+        }
+        
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('formError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            const successDiv = document.getElementById('formSuccess');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Event listeners
+        document.getElementById('postImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                uploadImage(file);
+            }
+        });
+        
+        document.getElementById('removeImage').addEventListener('click', removeImagePreview);
+        
+        // Rich text editor functionality
+        function initRichTextEditor() {
+            const editor = document.getElementById('postContent');
+            const toolbar = document.querySelector('.rich-text-toolbar');
+            
+            // Toolbar button functionality
+            toolbar.addEventListener('click', function(e) {
+                if (e.target.classList.contains('toolbar-btn')) {
+                    e.preventDefault();
+                    const command = e.target.dataset.command;
+                    const value = e.target.dataset.value;
+                    
+                    editor.focus();
+                    
+                    if (command === 'createLink') {
+                        const url = prompt('הזן את כתובת הקישור:');
+                        if (url) {
+                            document.execCommand(command, false, url);
+                        }
+                    } else if (value) {
+                        document.execCommand(command, false, value);
+                    } else {
+                        document.execCommand(command, false, null);
+                    }
+                    
+                    updateToolbarState();
+                }
+            });
+            
+            // Update toolbar button states
+            function updateToolbarState() {
+                const buttons = toolbar.querySelectorAll('.toolbar-btn');
+                buttons.forEach(btn => {
+                    const command = btn.dataset.command;
+                    const value = btn.dataset.value;
+                    
+                    if (command === 'formatBlock') {
+                        btn.classList.toggle('active', document.queryCommandValue('formatBlock') === value);
+                    } else {
+                        btn.classList.toggle('active', document.queryCommandState(command));
+                    }
+                });
+            }
+            
+            // Update toolbar on selection change
+            editor.addEventListener('keyup', updateToolbarState);
+            editor.addEventListener('mouseup', updateToolbarState);
+            
+            // Sync content with hidden textarea - convert HTML back to plain text/markdown
+            editor.addEventListener('input', function() {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = editor.innerHTML;
+                const content = tempDiv.innerText || tempDiv.textContent;
+                document.getElementById('postContentHidden').value = content;
+            });
+        }
+        
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Sync rich text editor content to hidden textarea before submit
+            const contentEditor = document.getElementById('postContent');
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = contentEditor.innerHTML;
+            const content = tempDiv.innerText || tempDiv.textContent;
+            document.getElementById('postContentHidden').value = content;
+            
+            const formData = new FormData(this);
+            const postData = {
+                title: formData.get('title'),
+                excerpt: formData.get('excerpt'),
+                content: formData.get('content'),
+                image_url: formData.get('image_url'),
+                published: formData.get('published') === 'on'
+            };
+            
+            try {
+                const response = await fetch(`/api/admin/blog/posts/${postId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(postData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccess('הפוסט נשמר בהצלחה!');
+                    setTimeout(() => {
+                        window.location.href = '/admin';
+                    }, 2000);
+                } else {
+                    showError(data.error || 'שגיאה בשמירת הפוסט');
+                }
+            } catch (error) {
+                console.error('Error saving post:', error);
+                showError('שגיאה בשמירת הפוסט');
+            }
+        });
+        
+        // Check authentication
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/admin/status');
+                const data = await response.json();
+                
+                if (!data.authenticated) {
+                    window.location.href = '/admin';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Error checking auth:', error);
+                window.location.href = '/admin';
+                return false;
+            }
+        }
+        
+        // Load post when page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            const isAuth = await checkAuth();
+            if (isAuth) {
+                initRichTextEditor();
+                loadPost();
+            }
+        });
+    </script>
+</body>
+</html>

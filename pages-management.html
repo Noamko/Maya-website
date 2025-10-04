@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול דפי האתר - מאיה קורן שכטמן</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .management-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--primary-color), rgba(208, 229, 222, 0.3));
+            border-radius: 20px;
+            box-shadow: 0 10px 30px var(--shadow-light);
+        }
+        
+        .management-header h1 {
+            font-size: 2.5rem;
+            color: var(--text-dark);
+            margin: 0;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+        
+        .content-list {
+            background: var(--secondary-color);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px var(--shadow-light);
+        }
+        
+        .page-item {
+            background: var(--primary-color);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 5px 15px var(--shadow-light);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-item:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-color);
+            box-shadow: 0 10px 25px var(--shadow-light);
+        }
+        
+        .page-info {
+            flex: 1;
+        }
+        
+        .page-info h3 {
+            margin: 0 0 0.8rem 0;
+            color: var(--text-dark);
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .page-excerpt {
+            color: var(--text-light);
+            margin: 0.5rem 0;
+            line-height: 1.5;
+        }
+        
+        .page-meta {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-top: 0.5rem;
+        }
+        
+        .page-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn-small {
+            padding: 0.8rem 1.5rem;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <a href="/admin" class="back-link">← חזרה ללוח בקרה</a>
+        
+        <div class="management-header">
+            <h1>ניהול דפי האתר</h1>
+        </div>
+        
+        <div id="pagesList" class="content-list">
+            <div class="loading">טוען דפים...</div>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/admin/status');
+                const data = await response.json();
+                
+                if (!data.authenticated) {
+                    window.location.href = '/admin';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Error checking auth:', error);
+                window.location.href = '/admin';
+                return false;
+            }
+        }
+        
+        // Load pages
+        async function loadPages() {
+            try {
+                const response = await fetch('/api/admin/pages');
+                const pages = await response.json();
+                
+                if (pages.error) {
+                    window.location.href = '/admin';
+                    return;
+                }
+                
+                displayPages(pages);
+            } catch (error) {
+                console.error('Error loading pages:', error);
+                document.getElementById('pagesList').innerHTML = '<div class="loading">שגיאה בטעינת הדפים</div>';
+            }
+        }
+
+        // Display pages
+        function displayPages(pages) {
+            const pagesList = document.getElementById('pagesList');
+            
+            if (pages.length === 0) {
+                pagesList.innerHTML = '<div class="loading">אין דפים זמינים</div>';
+                return;
+            }
+
+            const pageNames = {
+                'home': 'דף הבית',
+                'about': 'עליי',
+                'treatment': 'על הטיפול',
+                'sleep-medicine': 'שינה ורפואה סינית'
+            };
+
+            pagesList.innerHTML = pages.map(page => `
+                <div class="page-item">
+                    <div class="page-info">
+                        <h3>${pageNames[page.page_key] || page.page_key}</h3>
+                        <p class="page-excerpt">${page.title}</p>
+                        <div class="page-meta">
+                            <span>עודכן: ${new Date(page.updated_at).toLocaleDateString('he-IL')}</span>
+                        </div>
+                    </div>
+                    <div class="page-actions">
+                        <a href="/admin/edit-page?key=${page.page_key}" class="btn btn-small">ערוך</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize page
+        async function init() {
+            const isAuth = await checkAuth();
+            if (isAuth) {
+                await loadPages();
+            }
+        }
+        
+        // Load pages when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

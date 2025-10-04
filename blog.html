@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>בלוג - מאיה קורן שכטמן</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .blog-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .blog-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, var(--primary-color), rgba(208, 229, 222, 0.3));
+            border-radius: 20px;
+        }
+        
+        .blog-header h1 {
+            font-size: 3rem;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+        
+        .blog-header p {
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+        
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .post-card {
+            background: var(--secondary-color);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 20px var(--shadow-light);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .post-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px var(--shadow-light);
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .post-card h2 {
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+        
+        .post-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+        
+        .post-excerpt {
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        
+        .post-date {
+            font-weight: 500;
+        }
+        
+        .read-more {
+            color: var(--text-dark);
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .read-more:hover {
+            color: var(--primary-color);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+        
+        .error {
+            text-align: center;
+            padding: 3rem;
+            color: #dc3545;
+            font-size: 1.2rem;
+        }
+        
+        .no-posts {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+            font-size: 1.2rem;
+        }
+        
+        
+        @media (max-width: 768px) {
+            .blog-container {
+                padding: 1rem;
+            }
+            
+            .blog-header {
+                padding: 2rem 1rem;
+            }
+            
+            .blog-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .posts-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .post-card {
+                padding: 1.5rem;
+            }
+            
+            .post-card h2 {
+                font-size: 1.3rem;
+            }
+            
+            .post-modal-content {
+                margin: 5% auto;
+                width: 95%;
+                padding: 1.5rem;
+            }
+            
+            .post-modal-header h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <h2>מאיה קורן שכטמן</h2>
+                </div>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link">בית</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/aboutme" class="nav-link">עליי</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/treatment" class="nav-link">על הטיפול</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/sleep-medicine" class="nav-link">שינה ורופאה סינית</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/blog" class="nav-link active">בלוג</a>
+                    </li>
+                </ul>
+                <div class="hamburger">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="blog-container">
+            <div class="blog-header">
+                <h1>בלוג</h1>
+                <p>מאמרים וטיפים על שינה איכותית ורפואה סינית</p>
+            </div>
+
+            <div id="postsContainer">
+                <div class="loading">טוען פוסטים...</div>
+            </div>
+        </div>
+    </main>
+
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <span class="contact-label">שם:</span>
+                            <span class="contact-value">מאיה קורן שכטמן</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-label">טלפון:</span>
+                            <span class="contact-value">050-123-4567</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-label">אימייל:</span>
+                            <span class="contact-value">maya@example.com</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-label">כתובת:</span>
+                            <span class="contact-value">רחוב הרצל 123, תל אביב</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 מאיה קורן שכטמן - שינה ורפואה סינית. כל הזכויות שמורות.</p>
+            </div>
+            
+            <!-- Mobile Contact Buttons -->
+            <div class="mobile-contact-buttons">
+                <a href="tel:050-123-4567" class="contact-btn phone-btn" title="התקשרו אלינו">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                    </svg>
+                </a>
+                <a href="https://wa.me/972501234567" class="contact-btn whatsapp-btn" title="שלחו הודעה בוואטסאפ" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                    </svg>
+                </a>
+                <a href="mailto:maya@example.com" class="contact-btn email-btn" title="שלחו אימייל">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/script.js"></script>
+    <script>
+        // DOM elements
+        const postsContainer = document.getElementById('postsContainer');
+
+        // Load posts on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPosts();
+        });
+
+        // Load posts from API
+        async function loadPosts() {
+            try {
+                const response = await fetch('/api/blog/posts');
+                const posts = await response.json();
+                displayPosts(posts);
+            } catch (error) {
+                console.error('Error loading posts:', error);
+                postsContainer.innerHTML = '<div class="error">שגיאה בטעינת הפוסטים</div>';
+            }
+        }
+
+        // Display posts
+        function displayPosts(posts) {
+            if (posts.length === 0) {
+                postsContainer.innerHTML = '<div class="no-posts">אין פוסטים זמינים כרגע</div>';
+                return;
+            }
+
+            postsContainer.innerHTML = `
+                <div class="posts-grid">
+                    ${posts.map(post => `
+                        <a href="/blog/${post.id}" class="post-card">
+                            ${post.image_url ? `<img src="${post.image_url}" alt="${post.title}" class="post-image">` : ''}
+                            <h2>${post.title}</h2>
+                            <div class="post-excerpt">${post.excerpt || post.content.substring(0, 150) + '...'}</div>
+                            <div class="post-meta">
+                                <span class="post-date">${new Date(post.created_at).toLocaleDateString('he-IL')}</span>
+                                <span class="read-more">קרא עוד</span>
+                            </div>
+                        </a>
+                    `).join('')}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
