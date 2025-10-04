@@ -10,12 +10,42 @@ const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const isProduction = NODE_ENV === 'production';
+
+// Trust proxy - required for secure cookies behind reverse proxy (nginx)
+if (isProduction) {
+    app.set('trust proxy', 1);
+}
 
 // Middleware
-app.use(cors({
-    origin: true,
+// CORS configuration - more secure for production
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        // In production, only allow your domain
+        if (isProduction) {
+            const allowedOrigins = [
+                process.env.FRONTEND_URL,
+                process.env.DOMAIN_URL
+            ].filter(Boolean);
+            
+            if (allowedOrigins.length === 0 || allowedOrigins.some(allowed => origin.includes(allowed))) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        } else {
+            // In development, allow all origins
+            callback(null, true);
+        }
+    },
     credentials: true
-}));
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('.'));
@@ -57,11 +87,13 @@ const upload = multer({
 
 // Session configuration
 app.use(session({
-    secret: 'mayakoren-secret-key-2025',
+    secret: process.env.SESSION_SECRET || 'mayakoren-secret-key-2025-change-in-production',
     resave: false,
     saveUninitialized: false,
     cookie: { 
-        secure: false, // Set to true in production with HTTPS
+        secure: isProduction, // true in production with HTTPS
+        httpOnly: true,
+        sameSite: isProduction ? 'strict' : 'lax',
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
 }));

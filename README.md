@@ -130,6 +130,39 @@ mayakoren/
 npm run dev
 ```
 
+## פריסה לאתר (Production)
+
+### פריסה לשרת Digital Ocean
+
+המערכת מותאמת לפריסה על שרת Digital Ocean עם תמיכה מלאה ב-HTTPS, אבטחה משופרת ואופטימיזציה.
+
+**קרא את המדריך המלא:** [DEPLOYMENT.md](./DEPLOYMENT.md)
+
+### הגדרות סביבה (Environment Variables)
+
+ליצירת קובץ `.env` לפריסה:
+
+```bash
+cp env.example .env
+```
+
+ערוך את `.env` והגדר:
+- `NODE_ENV=production`
+- `SESSION_SECRET` - מחרוזת סודית אקראית
+- `DOMAIN_URL` - כתובת הדומיין שלך
+- `FRONTEND_URL` - כתובת הדומיין שלך
+
+**חשוב:** לעולם אל תעלה את קובץ `.env` ל-git!
+
+### תכונות אבטחה בפריסה
+
+✅ HTTPS בלבד עם secure cookies  
+✅ Trust proxy להתקנה מאחורי Nginx  
+✅ CORS מוגבל לדומיין שלך בלבד  
+✅ Session secret מוצפן  
+✅ HTTP-only cookies  
+✅ SameSite protection  
+
 ## רישיון
 
 MIT License - ראה קובץ LICENSE לפרטים נוספים.
