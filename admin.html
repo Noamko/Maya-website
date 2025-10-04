@@ -664,8 +664,10 @@
 
         // Setup image upload handlers
         function setupImageHandlers() {
-            postImage.addEventListener('change', handleImageSelect);
-            removeImage.addEventListener('click', removeImagePreview);
+            if (postImage && removeImage) {
+                postImage.addEventListener('change', handleImageSelect);
+                removeImage.addEventListener('click', removeImagePreview);
+            }
         }
 
         // Handle image selection
@@ -738,8 +740,7 @@
                 
                 if (data.authenticated) {
                     showDashboard();
-                    loadPosts();
-                    loadPages();
+                    loadStatistics();
                 } else {
                     showLoginForm();
                 }
@@ -783,8 +784,7 @@
                 
                 if (data.success) {
                     showDashboard();
-                    loadPosts();
-                    loadPages();
+                    loadStatistics();
                 } else {
                     errorDiv.textContent = data.error || 'שגיאה בהתחברות';
                     errorDiv.style.display = 'block';
@@ -811,44 +811,14 @@
 
         // Load posts
         async function loadPosts() {
-            try {
-                const response = await fetch('/api/admin/blog/posts', {
-                    credentials: 'include'
-                });
-                const posts = await response.json();
-                currentPosts = posts;
-                displayPosts(posts);
-            } catch (error) {
-                console.error('Error loading posts:', error);
-                postsList.innerHTML = '<div class="error-message">שגיאה בטעינת הפוסטים</div>';
-            }
+            // Only load posts if we're on the admin dashboard (not separate management pages)
+            return;
         }
 
-        // Display posts
+        // Display posts - not used on main admin dashboard
         function displayPosts(posts) {
-            const postsList = document.getElementById('postsList');
-            
-            if (posts.length === 0) {
-                postsList.innerHTML = '<div class="no-posts">אין פוסטים זמינים</div>';
-                return;
-            }
-
-            postsList.innerHTML = posts.map(post => `
-                <div class="post-item">
-                    <div class="post-info">
-                        ${post.image_url ? `<img src="${post.image_url}" alt="${post.title}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-left: 1rem; float: right;">` : ''}
-                        <h3>${post.title}</h3>
-                        <p class="post-excerpt">${post.excerpt || 'ללא תקציר'}</p>
-                        <div class="post-meta">
-                            <span>נוצר: ${new Date(post.created_at).toLocaleDateString('he-IL')} | ${post.published ? 'פורסם' : 'לא פורסם'}</span>
-                        </div>
-                    </div>
-                    <div class="post-actions">
-                        <a href="/admin/edit-post?id=${post.id}" class="btn btn-small">ערוך</a>
-                        <button class="btn btn-small btn-danger" onclick="deletePost(${post.id})">מחק</button>
-                    </div>
-                </div>
-            `).join('');
+            // This function is not used on the main dashboard
+            return;
         }
 
 
@@ -878,74 +848,80 @@
             }
         }
 
-        // Post form submission
-        postForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(postForm);
-            const postData = {
-                title: formData.get('title'),
-                content: formData.get('content'),
-                excerpt: formData.get('excerpt'),
-                image_url: formData.get('image_url'),
-                published: formData.get('published') === 'on'
-            };
-
-            const errorDiv = document.getElementById('formError');
-            errorDiv.style.display = 'none';
-
-            try {
-                let response;
-                if (isEditMode) {
-                    const id = document.getElementById('postId').value;
-                    response = await fetch(`/api/admin/blog/posts/${id}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(postData)
-                    });
-                } else {
-                    response = await fetch('/api/admin/blog/posts', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(postData)
-                    });
-                }
+        // Post form submission - only if form exists
+        if (postForm) {
+            postForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
                 
-                const data = await response.json();
-                
-                if (data.success) {
-                    postModal.style.display = 'none';
-                    loadPosts();
-                } else {
-                    errorDiv.textContent = data.error || 'שגיאה בשמירת הפוסט';
+                const formData = new FormData(postForm);
+                const postData = {
+                    title: formData.get('title'),
+                    content: formData.get('content'),
+                    excerpt: formData.get('excerpt'),
+                    image_url: formData.get('image_url'),
+                    published: formData.get('published') === 'on'
+                };
+
+                const errorDiv = document.getElementById('formError');
+                errorDiv.style.display = 'none';
+
+                try {
+                    let response;
+                    if (isEditMode) {
+                        const id = document.getElementById('postId').value;
+                        response = await fetch(`/api/admin/blog/posts/${id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(postData)
+                        });
+                    } else {
+                        response = await fetch('/api/admin/blog/posts', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(postData)
+                        });
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        postModal.style.display = 'none';
+                        loadPosts();
+                    } else {
+                        errorDiv.textContent = data.error || 'שגיאה בשמירת הפוסט';
+                        errorDiv.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Save error:', error);
+                    errorDiv.textContent = 'שגיאה בשמירת הפוסט';
                     errorDiv.style.display = 'block';
                 }
-            } catch (error) {
-                console.error('Save error:', error);
-                errorDiv.textContent = 'שגיאה בשמירת הפוסט';
-                errorDiv.style.display = 'block';
-            }
-        });
+            });
+        }
 
-        // Close modal
-        closeModal.addEventListener('click', function() {
-            postModal.style.display = 'none';
-        });
+        // Close modal - only if elements exist
+        if (closeModal) {
+            closeModal.addEventListener('click', function() {
+                if (postModal) postModal.style.display = 'none';
+            });
+        }
 
-        cancelBtn.addEventListener('click', function() {
-            postModal.style.display = 'none';
-        });
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                if (postModal) postModal.style.display = 'none';
+            });
+        }
 
         // Close modal when clicking outside
         window.addEventListener('click', function(e) {
-            if (e.target === postModal) {
+            if (postModal && e.target === postModal) {
                 postModal.style.display = 'none';
             }
-            if (e.target === pageModal) {
+            if (pageModal && e.target === pageModal) {
                 pageModal.style.display = 'none';
             }
         });
@@ -956,49 +932,14 @@
 
         // Load pages
         async function loadPages() {
-            try {
-                const response = await fetch('/api/admin/pages', {
-                    credentials: 'include'
-                });
-                const pages = await response.json();
-                currentPages = pages;
-                displayPages(pages);
-            } catch (error) {
-                console.error('Error loading pages:', error);
-                document.getElementById('pagesList').innerHTML = '<div class="error">שגיאה בטעינת הדפים</div>';
-            }
+            // Only load pages if we're on the admin dashboard (not separate management pages)
+            return;
         }
 
-        // Display pages
+        // Display pages - not used on main admin dashboard
         function displayPages(pages) {
-            const pagesList = document.getElementById('pagesList');
-            
-            if (pages.length === 0) {
-                pagesList.innerHTML = '<div class="no-pages">אין דפים זמינים</div>';
-                return;
-            }
-
-            const pageNames = {
-                'home': 'דף הבית',
-                'about': 'עליי',
-                'treatment': 'על הטיפול',
-                'sleep-medicine': 'שינה ורפואה סינית'
-            };
-
-            pagesList.innerHTML = pages.map(page => `
-                <div class="page-item">
-                    <div class="page-info">
-                        <h3>${pageNames[page.page_key] || page.page_key}</h3>
-                        <p class="page-excerpt">${page.title}</p>
-                        <div class="page-meta">
-                            <span>עודכן: ${new Date(page.updated_at).toLocaleDateString('he-IL')}</span>
-                        </div>
-                    </div>
-                    <div class="page-actions">
-                        <a href="/admin/edit-page?key=${page.page_key}" class="btn btn-small">ערוך</a>
-                    </div>
-                </div>
-            `).join('');
+            // This function is not used on the main dashboard
+            return;
         }
 
         // Edit page
@@ -1021,52 +962,63 @@
             pageModal.style.display = 'block';
         }
 
-        // Page form submission
-        document.getElementById('pageForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const pageData = {
-                title: formData.get('title'),
-                content: formData.get('content'),
-                image_url: formData.get('image_url')
-            };
+        // Page form submission - only if form exists
+        const pageFormElement = document.getElementById('pageForm');
+        if (pageFormElement) {
+            pageFormElement.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const pageData = {
+                    title: formData.get('title'),
+                    content: formData.get('content'),
+                    image_url: formData.get('image_url')
+                };
 
-            try {
-                const pageKey = document.getElementById('pageKey').value;
-                const response = await fetch(`/api/admin/pages/${pageKey}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(pageData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    pageModal.style.display = 'none';
-                    loadPages();
-                    // Reload the page to update menu items
-                    window.location.reload();
-                } else {
-                    document.getElementById('pageFormError').textContent = data.error || 'שגיאה בשמירת הדף';
-                    document.getElementById('pageFormError').style.display = 'block';
+                try {
+                    const pageKey = document.getElementById('pageKey').value;
+                    const response = await fetch(`/api/admin/pages/${pageKey}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(pageData)
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        if (pageModal) pageModal.style.display = 'none';
+                        loadPages();
+                        // Reload the page to update menu items
+                        window.location.reload();
+                    } else {
+                        const errorElement = document.getElementById('pageFormError');
+                        if (errorElement) {
+                            errorElement.textContent = data.error || 'שגיאה בשמירת הדף';
+                            errorElement.style.display = 'block';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error saving page:', error);
+                    const errorElement = document.getElementById('pageFormError');
+                    if (errorElement) {
+                        errorElement.textContent = 'שגיאה בשמירת הדף';
+                        errorElement.style.display = 'block';
+                    }
                 }
-            } catch (error) {
-                console.error('Error saving page:', error);
-                document.getElementById('pageFormError').textContent = 'שגיאה בשמירת הדף';
-                document.getElementById('pageFormError').style.display = 'block';
-            }
-        });
+            });
+        }
 
         // Page image handling
         function setupPageImageHandlers() {
             const pageImageInput = document.getElementById('pageImage');
             const removePageImageBtn = document.getElementById('removePageImage');
 
-            pageImageInput.addEventListener('change', handlePageImageSelect);
-            removePageImageBtn.addEventListener('click', removePageImagePreview);
+            if (pageImageInput && removePageImageBtn) {
+                pageImageInput.addEventListener('change', handlePageImageSelect);
+                removePageImageBtn.addEventListener('click', removePageImagePreview);
+            }
         }
 
         function handlePageImageSelect(event) {
@@ -1118,14 +1070,21 @@
             currentPageImageUrl = '';
         }
 
-        // Page modal event listeners
-        document.getElementById('pageClose').addEventListener('click', function() {
-            pageModal.style.display = 'none';
-        });
+        // Page modal event listeners - only if elements exist
+        const pageCloseBtn = document.getElementById('pageClose');
+        const pageCancelBtn = document.getElementById('pageCancelBtn');
+        
+        if (pageCloseBtn) {
+            pageCloseBtn.addEventListener('click', function() {
+                if (pageModal) pageModal.style.display = 'none';
+            });
+        }
 
-        document.getElementById('pageCancelBtn').addEventListener('click', function() {
-            pageModal.style.display = 'none';
-        });
+        if (pageCancelBtn) {
+            pageCancelBtn.addEventListener('click', function() {
+                if (pageModal) pageModal.style.display = 'none';
+            });
+        }
 
         // Initialize page management
         setupPageImageHandlers();
