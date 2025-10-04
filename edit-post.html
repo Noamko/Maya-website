@@ -398,7 +398,9 @@
         // Load post data
         async function loadPost() {
             try {
-                const response = await fetch(`/api/admin/blog/posts/${postId}`);
+                const response = await fetch(`/api/admin/blog/posts/${postId}`, {
+                    credentials: 'include'
+                });
                 const post = await response.json();
                 
                 if (post) {
@@ -460,6 +462,7 @@
             try {
                 const response = await fetch('/api/admin/upload', {
                     method: 'POST',
+                    credentials: 'include',
                     body: formData
                 });
                 
@@ -586,6 +589,7 @@
             try {
                 const response = await fetch(`/api/admin/blog/posts/${postId}`, {
                     method: 'PUT',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -611,7 +615,9 @@
         // Check authentication
         async function checkAuth() {
             try {
-                const response = await fetch('/api/admin/status');
+                const response = await fetch('/api/admin/status', {
+                    credentials: 'include'
+                });
                 const data = await response.json();
                 
                 if (!data.authenticated) {

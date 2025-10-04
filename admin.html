@@ -731,7 +731,9 @@
         // Check if user is authenticated
         async function checkAuthStatus() {
             try {
-                const response = await fetch('/api/admin/status');
+                const response = await fetch('/api/admin/status', {
+                    credentials: 'include'
+                });
                 const data = await response.json();
                 
                 if (data.authenticated) {
@@ -770,6 +772,7 @@
             try {
                 const response = await fetch('/api/admin/login', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -796,7 +799,10 @@
         // Logout
         logoutBtn.addEventListener('click', async function() {
             try {
-                await fetch('/api/admin/logout', { method: 'POST' });
+                await fetch('/api/admin/logout', { 
+                    method: 'POST',
+                    credentials: 'include'
+                });
                 showLoginForm();
             } catch (error) {
                 console.error('Logout error:', error);
@@ -806,7 +812,9 @@
         // Load posts
         async function loadPosts() {
             try {
-                const response = await fetch('/api/admin/blog/posts');
+                const response = await fetch('/api/admin/blog/posts', {
+                    credentials: 'include'
+                });
                 const posts = await response.json();
                 currentPosts = posts;
                 displayPosts(posts);
@@ -853,7 +861,8 @@
 
             try {
                 const response = await fetch(`/api/admin/blog/posts/${id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    credentials: 'include'
                 });
                 
                 const data = await response.json();
@@ -948,7 +957,9 @@
         // Load pages
         async function loadPages() {
             try {
-                const response = await fetch('/api/admin/pages');
+                const response = await fetch('/api/admin/pages', {
+                    credentials: 'include'
+                });
                 const pages = await response.json();
                 currentPages = pages;
                 displayPages(pages);
@@ -1143,7 +1154,9 @@
         async function loadStatistics() {
             try {
                 // Load posts count
-                const postsResponse = await fetch('/api/admin/blog/posts');
+                const postsResponse = await fetch('/api/admin/blog/posts', {
+                    credentials: 'include'
+                });
                 const posts = await postsResponse.json();
                 document.getElementById('totalPosts').textContent = posts.length;
                 

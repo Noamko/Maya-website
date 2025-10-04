@@ -133,7 +133,9 @@
         // Check authentication
         async function checkAuth() {
             try {
-                const response = await fetch('/api/admin/status');
+                const response = await fetch('/api/admin/status', {
+                    credentials: 'include'
+                });
                 const data = await response.json();
                 
                 if (!data.authenticated) {
@@ -151,7 +153,9 @@
         // Load pages
         async function loadPages() {
             try {
-                const response = await fetch('/api/admin/pages');
+                const response = await fetch('/api/admin/pages', {
+                    credentials: 'include'
+                });
                 const pages = await response.json();
                 
                 if (pages.error) {

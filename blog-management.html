@@ -221,7 +221,9 @@
         // Check authentication
         async function checkAuth() {
             try {
-                const response = await fetch('/api/admin/status');
+                const response = await fetch('/api/admin/status', {
+                    credentials: 'include'
+                });
                 const data = await response.json();
                 
                 if (!data.authenticated) {
@@ -239,7 +241,9 @@
         // Load posts
         async function loadPosts() {
             try {
-                const response = await fetch('/api/admin/blog/posts');
+                const response = await fetch('/api/admin/blog/posts', {
+                    credentials: 'include'
+                });
                 const posts = await response.json();
                 
                 if (posts.error) {
@@ -288,7 +292,8 @@
 
             try {
                 const response = await fetch(`/api/admin/blog/posts/${id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    credentials: 'include'
                 });
                 
                 const data = await response.json();
