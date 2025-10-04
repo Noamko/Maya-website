@@ -19,22 +19,41 @@ if (isProduction) {
 }
 
 // Middleware
-// CORS configuration - more secure for production
+// CORS configuration - allows same-origin and configured domains
 const corsOptions = {
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
+        // Allow requests with no origin (same-origin requests, SSR, curl, etc.)
+        if (!origin) {
+            return callback(null, true);
+        }
         
-        // In production, only allow your domain
+        // In production, check against allowed origins if configured
         if (isProduction) {
             const allowedOrigins = [
                 process.env.FRONTEND_URL,
                 process.env.DOMAIN_URL
             ].filter(Boolean);
             
-            if (allowedOrigins.length === 0 || allowedOrigins.some(allowed => origin.includes(allowed))) {
+            // If no environment variables set, allow all (for easier initial deployment)
+            // You should set these in production for security
+            if (allowedOrigins.length === 0) {
+                console.warn('⚠️  WARNING: DOMAIN_URL and FRONTEND_URL not set. CORS is open to all origins.');
+                return callback(null, true);
+            }
+            
+            // Check if origin matches any allowed origin
+            const isAllowed = allowedOrigins.some(allowed => {
+                // Remove protocol and trailing slash for comparison
+                const normalizedAllowed = allowed.replace(/^https?:\/\//, '').replace(/\/$/, '');
+                const normalizedOrigin = origin.replace(/^https?:\/\//, '').replace(/\/$/, '');
+                return normalizedOrigin === normalizedAllowed || normalizedOrigin.startsWith(normalizedAllowed);
+            });
+            
+            if (isAllowed) {
                 callback(null, true);
             } else {
+                console.error(`❌ CORS blocked request from origin: ${origin}`);
+                console.error(`   Allowed origins: ${allowedOrigins.join(', ')}`);
                 callback(new Error('Not allowed by CORS'));
             }
         } else {
@@ -90,11 +109,14 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'mayakoren-secret-key-2025-change-in-production',
     resave: false,
     saveUninitialized: false,
+    proxy: isProduction, // Trust the reverse proxy
     cookie: { 
         secure: isProduction, // true in production with HTTPS
         httpOnly: true,
-        sameSite: isProduction ? 'strict' : 'lax',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        sameSite: isProduction ? 'lax' : 'lax', // Changed from 'strict' to 'lax' for better compatibility
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        path: '/',
+        domain: undefined // Let the browser set this automatically
     }
 }));
 
@@ -286,10 +308,26 @@ function addSamplePages() {
 
 // Authentication middleware
 function requireAuth(req, res, next) {
+    // Debug logging for production issues
+    if (isProduction && (!req.session || !req.session.authenticated)) {
+        console.error('❌ Auth failed:', {
+            hasSession: !!req.session,
+            sessionID: req.session ? req.session.id : 'none',
+            authenticated: req.session ? req.session.authenticated : false,
+            cookies: req.headers.cookie ? 'present' : 'missing',
+            path: req.path,
+            secure: req.secure,
+            protocol: req.protocol
+        });
+    }
+    
     if (req.session && req.session.authenticated) {
         return next();
     } else {
-        return res.status(401).json({ error: 'Authentication required' });
+        return res.status(401).json({ 
+            error: 'Authentication required',
+            authenticated: false 
+        });
     }
 }
 
@@ -373,7 +411,30 @@ app.post('/api/admin/login', (req, res) => {
         
         req.session.authenticated = true;
         req.session.userId = user.id;
-        res.json({ success: true, message: 'Login successful' });
+        
+        // Save session explicitly and log debug info
+        req.session.save((err) => {
+            if (err) {
+                console.error('❌ Session save error:', err);
+                return res.status(500).json({ error: 'Session error' });
+            }
+            
+            if (isProduction) {
+                console.log('✅ Login successful:', {
+                    sessionID: req.session.id,
+                    authenticated: req.session.authenticated,
+                    secure: req.secure,
+                    protocol: req.protocol,
+                    cookieSettings: {
+                        secure: req.session.cookie.secure,
+                        httpOnly: req.session.cookie.httpOnly,
+                        sameSite: req.session.cookie.sameSite
+                    }
+                });
+            }
+            
+            res.json({ success: true, message: 'Login successful' });
+        });
     });
 });
 
