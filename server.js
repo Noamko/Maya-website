@@ -119,7 +119,7 @@ app.use(session({
     cookie: { 
         secure: isProduction, // true in production with HTTPS
         httpOnly: true,
-        sameSite: isProduction ? 'lax' : 'lax', // Changed from 'strict' to 'lax' for better compatibility
+        sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin support
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         path: '/',
         domain: undefined // Let the browser set this automatically
