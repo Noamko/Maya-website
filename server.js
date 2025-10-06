@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
@@ -104,8 +105,13 @@ const upload = multer({
     }
 });
 
-// Session configuration
+// Session configuration with persistent SQLite store
 app.use(session({
+    store: new SQLiteStore({
+        db: 'sessions.db',
+        dir: './',
+        table: 'sessions'
+    }),
     secret: process.env.SESSION_SECRET || 'mayakoren-secret-key-2025-change-in-production',
     resave: false,
     saveUninitialized: false,

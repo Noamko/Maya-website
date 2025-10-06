@@ -147,3 +147,4 @@ If you encounter issues:
 4. Check Nginx config: `sudo nginx -t`
 5. Review [DEPLOYMENT.md](./DEPLOYMENT.md) troubleshooting section
 
+
