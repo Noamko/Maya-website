@@ -321,9 +321,13 @@ function requireAuth(req, res, next) {
             sessionID: req.session ? req.session.id : 'none',
             authenticated: req.session ? req.session.authenticated : false,
             cookies: req.headers.cookie ? 'present' : 'missing',
+            cookieHeader: req.headers.cookie ? req.headers.cookie.substring(0, 100) : 'none',
             path: req.path,
             secure: req.secure,
-            protocol: req.protocol
+            protocol: req.protocol,
+            host: req.get('host'),
+            origin: req.get('origin'),
+            referer: req.get('referer')
         });
     }
     
@@ -431,10 +435,14 @@ app.post('/api/admin/login', (req, res) => {
                     authenticated: req.session.authenticated,
                     secure: req.secure,
                     protocol: req.protocol,
+                    host: req.get('host'),
+                    origin: req.get('origin'),
                     cookieSettings: {
                         secure: req.session.cookie.secure,
                         httpOnly: req.session.cookie.httpOnly,
-                        sameSite: req.session.cookie.sameSite
+                        sameSite: req.session.cookie.sameSite,
+                        domain: req.session.cookie.domain,
+                        path: req.session.cookie.path
                     }
                 });
             }
