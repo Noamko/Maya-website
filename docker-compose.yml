@@ -1,0 +1,88 @@
+services:
+  # Nginx reverse proxy with SSL
+  nginx:
+    image: nginx:alpine
+    container_name: maya-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certbot/conf:/etc/nginx/ssl:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - maya-network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Certbot for SSL certificate management
+  certbot:
+    image: certbot/certbot
+    container_name: maya-certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - maya-network
+
+  # Node.js application
+  app:
+    build: .
+    container_name: maya-website
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3000
+      - DOMAIN_URL=${DOMAIN_URL:-https://localhost}
+      - FRONTEND_URL=${FRONTEND_URL:-https://localhost}
+    volumes:
+      - ./assets/uploads:/app/assets/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - maya-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/admin/status"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+  # PostgreSQL database
+  db:
+    image: postgres:16-alpine
+    container_name: maya-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - maya-network
+
+networks:
+  maya-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

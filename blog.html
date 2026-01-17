@@ -8,163 +8,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        .blog-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        
-        .blog-header {
-            text-align: center;
-            margin-bottom: 3rem;
-            padding: 3rem 2rem;
-            background: linear-gradient(135deg, var(--primary-color), rgba(208, 229, 222, 0.3));
-            border-radius: 20px;
-        }
-        
-        .blog-header h1 {
-            font-size: 3rem;
-            color: var(--text-dark);
-            margin-bottom: 1rem;
-        }
-        
-        .blog-header p {
-            font-size: 1.2rem;
-            color: var(--text-light);
-        }
-        
-        .posts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-        
-        .post-card {
-            background: var(--secondary-color);
-            border-radius: 15px;
-            padding: 2rem;
-            box-shadow: 0 5px 20px var(--shadow-light);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-            display: block;
-        }
-        
-        .post-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px var(--shadow-light);
-            text-decoration: none;
-            color: inherit;
-        }
-        
-        .post-card h2 {
-            font-size: 1.5rem;
-            color: var(--text-dark);
-            margin-bottom: 1rem;
-            line-height: 1.3;
-        }
-        
-        .post-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-        }
-        
-        .post-excerpt {
-            color: var(--text-light);
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-        }
-        
-        .post-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color);
-            font-size: 0.9rem;
-            color: var(--text-light);
-        }
-        
-        .post-date {
-            font-weight: 500;
-        }
-        
-        .read-more {
-            color: var(--text-dark);
-            font-weight: 600;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        
-        .read-more:hover {
-            color: var(--primary-color);
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 3rem;
-            font-size: 1.2rem;
-            color: var(--text-light);
-        }
-        
-        .error {
-            text-align: center;
-            padding: 3rem;
-            color: #dc3545;
-            font-size: 1.2rem;
-        }
-        
-        .no-posts {
-            text-align: center;
-            padding: 3rem;
-            color: var(--text-light);
-            font-size: 1.2rem;
-        }
-        
-        
-        @media (max-width: 768px) {
-            .blog-container {
-                padding: 1rem;
-            }
-            
-            .blog-header {
-                padding: 2rem 1rem;
-            }
-            
-            .blog-header h1 {
-                font-size: 2.2rem;
-            }
-            
-            .posts-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-            
-            .post-card {
-                padding: 1.5rem;
-            }
-            
-            .post-card h2 {
-                font-size: 1.3rem;
-            }
-            
-            .post-modal-content {
-                margin: 5% auto;
-                width: 95%;
-                padding: 1.5rem;
-            }
-            
-            .post-modal-header h2 {
-                font-size: 1.5rem;
-            }
-        }
-    </style>
 </head>
 <body>
     <header>
@@ -182,9 +25,6 @@
                     </li>
                     <li class="nav-item">
                         <a href="/treatment" class="nav-link">על הטיפול</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/sleep-medicine" class="nav-link">שינה ורופאה סינית</a>
                     </li>
                     <li class="nav-item">
                         <a href="/blog" class="nav-link active">בלוג</a>
@@ -211,7 +51,6 @@
             </div>
         </div>
     </main>
-
 
     <footer class="footer">
         <div class="container">
@@ -241,7 +80,6 @@
                 <p>&copy; 2025 מאיה קורן שכטמן - שינה ורפואה סינית. כל הזכויות שמורות.</p>
             </div>
             
-            <!-- Mobile Contact Buttons -->
             <div class="mobile-contact-buttons">
                 <a href="tel:+972546747049" class="contact-btn phone-btn" title="התקשרו אלינו">
                     <svg viewBox="0 0 24 24" fill="currentColor">
@@ -264,15 +102,10 @@
 
     <script src="assets/js/script.js"></script>
     <script>
-        // DOM elements
         const postsContainer = document.getElementById('postsContainer');
 
-        // Load posts on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadPosts();
-        });
+        document.addEventListener('DOMContentLoaded', loadPosts);
 
-        // Load posts from API
         async function loadPosts() {
             try {
                 const response = await fetch('/api/blog/posts');
@@ -284,7 +117,6 @@
             }
         }
 
-        // Display posts
         function displayPosts(posts) {
             if (posts.length === 0) {
                 postsContainer.innerHTML = '<div class="no-posts">אין פוסטים זמינים כרגע</div>';

@@ -147,8 +147,6 @@ function updateNavigationTitles(pageTitles) {
             pageKey = 'about';
         } else if (href === '/treatment') {
             pageKey = 'treatment';
-        } else if (href === '/sleep-medicine') {
-            pageKey = 'sleep-medicine';
         }
         
         if (pageKey && pageTitles[pageKey]) {

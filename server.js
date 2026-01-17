@@ -1,10 +1,10 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
+const { Pool } = require('pg');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
-const SQLiteStore = require('connect-sqlite3')(session);
+const PgSession = require('connect-pg-simple')(session);
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
@@ -18,6 +18,24 @@ const isProduction = NODE_ENV === 'production';
 if (isProduction) {
     app.set('trust proxy', 1);
 }
+
+// Database connection pool
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL || 'postgresql://maya_user:maya_password@localhost:5432/maya_website',
+    // SSL configuration for production (if connecting to external managed DB)
+    ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false
+});
+
+// Test database connection
+pool.connect((err, client, release) => {
+    if (err) {
+        console.error('Error connecting to PostgreSQL:', err.message);
+        return;
+    }
+    console.log('Connected to PostgreSQL database');
+    release();
+    initializeDatabase();
+});
 
 // Middleware
 // CORS configuration - allows same-origin and configured domains
@@ -105,12 +123,12 @@ const upload = multer({
     }
 });
 
-// Session configuration with persistent SQLite store
+// Session configuration with PostgreSQL store
 app.use(session({
-    store: new SQLiteStore({
-        db: 'sessions.db',
-        dir: './',
-        table: 'sessions'
+    store: new PgSession({
+        pool: pool,
+        tableName: 'user_sessions',
+        createTableIfMissing: true
     }),
     secret: process.env.SESSION_SECRET || 'mayakoren-secret-key-2025-change-in-production',
     resave: false,
@@ -126,113 +144,83 @@ app.use(session({
     }
 }));
 
-// Database setup
-const db = new sqlite3.Database('./blog.db', (err) => {
-    if (err) {
-        console.error('Error opening database:', err.message);
-    } else {
-        console.log('Connected to SQLite database');
-        initializeDatabase();
-    }
-});
-
 // Initialize database tables
-function initializeDatabase() {
-    // Create blog posts table
-    db.run(`CREATE TABLE IF NOT EXISTS blog_posts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        content TEXT NOT NULL,
-        excerpt TEXT,
-        author TEXT DEFAULT 'מאיה קורן שכטמן',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        published BOOLEAN DEFAULT 1
-    )`, (err) => {
-        if (err) {
-            console.error('Error creating blog_posts table:', err.message);
-        } else {
-            console.log('Blog posts table ready');
-            // Add image_url column if it doesn't exist
-            addImageUrlColumn();
-        }
-    });
+async function initializeDatabase() {
+    try {
+        // Create blog posts table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS blog_posts (
+                id SERIAL PRIMARY KEY,
+                title TEXT NOT NULL,
+                content TEXT NOT NULL,
+                excerpt TEXT,
+                image_url TEXT,
+                author TEXT DEFAULT 'מאיה קורן שכטמן',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                published BOOLEAN DEFAULT true
+            )
+        `);
+        console.log('Blog posts table ready');
 
-    // Create admin users table
-    db.run(`CREATE TABLE IF NOT EXISTS admin_users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`, (err) => {
-        if (err) {
-            console.error('Error creating admin_users table:', err.message);
-        } else {
-            console.log('Admin users table ready');
-            // Create default admin user
-            createDefaultAdmin();
-        }
-    });
+        // Create admin users table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS admin_users (
+                id SERIAL PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        console.log('Admin users table ready');
 
-    // Create pages table
-    db.run(`CREATE TABLE IF NOT EXISTS pages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        page_key TEXT UNIQUE NOT NULL,
-        title TEXT NOT NULL,
-        content TEXT NOT NULL,
-        image_url TEXT,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`, (err) => {
-        if (err) {
-            console.error('Error creating pages table:', err.message);
-        } else {
-            console.log('Pages table ready');
-            // Add sample pages
-            addSamplePages();
-        }
-    });
+        // Create pages table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS pages (
+                id SERIAL PRIMARY KEY,
+                page_key TEXT UNIQUE NOT NULL,
+                title TEXT NOT NULL,
+                content TEXT NOT NULL,
+                image_url TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        console.log('Pages table ready');
+
+        // Create default admin user
+        await createDefaultAdmin();
+        
+        // Add sample data if tables are empty
+        await addSampleData();
+
+    } catch (err) {
+        console.error('Error initializing database:', err.message);
+    }
 }
 
 // Create default admin user
-function createDefaultAdmin() {
-    const adminPassword = 'admin';
-    const hashedPassword = bcrypt.hashSync(adminPassword, 10);
-    
-    db.get('SELECT id FROM admin_users WHERE username = ?', ['admin'], (err, row) => {
-        if (err) {
-            console.error('Error checking admin user:', err.message);
-        } else if (!row) {
-            db.run('INSERT INTO admin_users (username, password_hash) VALUES (?, ?)', 
-                ['admin', hashedPassword], (err) => {
-                if (err) {
-                    console.error('Error creating admin user:', err.message);
-                } else {
-                    console.log('Default admin user created (username: admin, password: admin)');
-                }
-            });
+async function createDefaultAdmin() {
+    try {
+        const result = await pool.query('SELECT id FROM admin_users WHERE username = $1', ['admin']);
+        
+        if (result.rows.length === 0) {
+            const adminPassword = 'admin';
+            const hashedPassword = bcrypt.hashSync(adminPassword, 10);
+            await pool.query('INSERT INTO admin_users (username, password_hash) VALUES ($1, $2)', 
+                ['admin', hashedPassword]);
+            console.log('Default admin user created (username: admin, password: admin)');
         }
-    });
+    } catch (err) {
+        console.error('Error creating admin user:', err.message);
+    }
 }
 
-// Add image_url column if it doesn't exist
-function addImageUrlColumn() {
-    db.run('ALTER TABLE blog_posts ADD COLUMN image_url TEXT', (err) => {
-        if (err && !err.message.includes('duplicate column name')) {
-            console.error('Error adding image_url column:', err.message);
-        } else {
-            console.log('Image URL column ready');
-            // Add sample blog posts if table is empty
-            addSamplePosts();
-        }
-    });
-}
-
-// Add sample blog posts
-function addSamplePosts() {
-    db.get('SELECT COUNT(*) as count FROM blog_posts', (err, row) => {
-        if (err) {
-            console.error('Error checking blog posts:', err.message);
-        } else if (row.count === 0) {
+// Add sample data if tables are empty
+async function addSampleData() {
+    try {
+        // Check and add sample blog posts
+        const postsResult = await pool.query('SELECT COUNT(*) as count FROM blog_posts');
+        if (parseInt(postsResult.rows[0].count) === 0) {
             const samplePosts = [
                 {
                     title: 'החשיבות של שינה איכותית',
@@ -251,26 +239,18 @@ function addSamplePosts() {
                 }
             ];
 
-            samplePosts.forEach((post, index) => {
-                db.run('INSERT INTO blog_posts (title, content, excerpt) VALUES (?, ?, ?)', 
-                    [post.title, post.content, post.excerpt], (err) => {
-                    if (err) {
-                        console.error('Error inserting sample post:', err.message);
-                    } else {
-                        console.log(`Sample post ${index + 1} added`);
-                    }
-                });
-            });
+            for (const post of samplePosts) {
+                await pool.query(
+                    'INSERT INTO blog_posts (title, content, excerpt) VALUES ($1, $2, $3)',
+                    [post.title, post.content, post.excerpt]
+                );
+            }
+            console.log('Sample blog posts added');
         }
-    });
-}
 
-// Add sample pages
-function addSamplePages() {
-    db.get('SELECT COUNT(*) as count FROM pages', (err, row) => {
-        if (err) {
-            console.error('Error checking pages:', err.message);
-        } else if (row.count === 0) {
+        // Check and add sample pages
+        const pagesResult = await pool.query('SELECT COUNT(*) as count FROM pages');
+        if (parseInt(pagesResult.rows[0].count) === 0) {
             const samplePages = [
                 {
                     page_key: 'home',
@@ -298,18 +278,17 @@ function addSamplePages() {
                 }
             ];
 
-            samplePages.forEach((page) => {
-                db.run('INSERT INTO pages (page_key, title, content, image_url) VALUES (?, ?, ?, ?)', 
-                    [page.page_key, page.title, page.content, page.image_url], (err) => {
-                    if (err) {
-                        console.error('Error inserting sample page:', err.message);
-                    } else {
-                        console.log(`Sample page ${page.page_key} added`);
-                    }
-                });
-            });
+            for (const page of samplePages) {
+                await pool.query(
+                    'INSERT INTO pages (page_key, title, content, image_url) VALUES ($1, $2, $3, $4)',
+                    [page.page_key, page.title, page.content, page.image_url]
+                );
+            }
+            console.log('Sample pages added');
         }
-    });
+    } catch (err) {
+        console.error('Error adding sample data:', err.message);
+    }
 }
 
 // Authentication middleware
@@ -355,10 +334,6 @@ app.get('/aboutme', (req, res) => {
 
 app.get('/treatment', (req, res) => {
     res.sendFile(path.join(__dirname, 'treatment.html'));
-});
-
-app.get('/sleep-medicine', (req, res) => {
-    res.sendFile(path.join(__dirname, 'sleep-medicine.html'));
 });
 
 // Blog page
@@ -407,13 +382,12 @@ app.get('/admin/new-post', (req, res) => {
 // API Routes
 
 // Admin authentication
-app.post('/api/admin/login', (req, res) => {
+app.post('/api/admin/login', async (req, res) => {
     const { username, password } = req.body;
     
-    db.get('SELECT * FROM admin_users WHERE username = ?', [username], (err, user) => {
-        if (err) {
-            return res.status(500).json({ error: 'Database error' });
-        }
+    try {
+        const result = await pool.query('SELECT * FROM admin_users WHERE username = $1', [username]);
+        const user = result.rows[0];
         
         if (!user || !bcrypt.compareSync(password, user.password_hash)) {
             return res.status(401).json({ error: 'Invalid credentials' });
@@ -449,7 +423,10 @@ app.post('/api/admin/login', (req, res) => {
             
             res.json({ success: true, message: 'Login successful' });
         });
-    });
+    } catch (err) {
+        console.error('Login error:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
 });
 
 app.post('/api/admin/logout', (req, res) => {
@@ -462,52 +439,54 @@ app.post('/api/admin/logout', (req, res) => {
 });
 
 // Blog posts API
-app.get('/api/blog/posts', (req, res) => {
-    db.all('SELECT * FROM blog_posts WHERE published = 1 ORDER BY created_at DESC', (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        res.json(rows);
-    });
+app.get('/api/blog/posts', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM blog_posts WHERE published = true ORDER BY created_at DESC');
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching blog posts:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
 });
 
-app.get('/api/blog/posts/:id', (req, res) => {
+app.get('/api/blog/posts/:id', async (req, res) => {
     const { id } = req.params;
-    db.get('SELECT * FROM blog_posts WHERE id = ? AND published = 1', [id], (err, row) => {
-        if (err) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        if (!row) {
+    try {
+        const result = await pool.query('SELECT * FROM blog_posts WHERE id = $1 AND published = true', [id]);
+        if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Post not found' });
         }
-        res.json(row);
-    });
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Error fetching blog post:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
 });
 
 // Admin blog management API
-app.get('/api/admin/blog/posts', requireAuth, (req, res) => {
-    db.all('SELECT * FROM blog_posts ORDER BY created_at DESC', (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        res.json(rows);
-    });
+app.get('/api/admin/blog/posts', requireAuth, async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM blog_posts ORDER BY created_at DESC');
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching admin blog posts:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
 });
 
 // Get single blog post by ID (admin)
-app.get('/api/admin/blog/posts/:id', requireAuth, (req, res) => {
+app.get('/api/admin/blog/posts/:id', requireAuth, async (req, res) => {
     const { id } = req.params;
-    db.get('SELECT * FROM blog_posts WHERE id = ?', [id], (err, row) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
+    try {
+        const result = await pool.query('SELECT * FROM blog_posts WHERE id = $1', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Post not found' });
         }
-        if (!row) {
-            res.status(404).json({ error: 'Post not found' });
-            return;
-        }
-        res.json(row);
-    });
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Error fetching blog post:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Image upload route
@@ -520,23 +499,26 @@ app.post('/api/admin/upload', requireAuth, upload.single('image'), (req, res) =>
     res.json({ success: true, imageUrl: imageUrl });
 });
 
-app.post('/api/admin/blog/posts', requireAuth, (req, res) => {
+app.post('/api/admin/blog/posts', requireAuth, async (req, res) => {
     const { title, content, excerpt, image_url, published = true } = req.body;
     
     if (!title || !content) {
         return res.status(400).json({ error: 'Title and content are required' });
     }
     
-    db.run('INSERT INTO blog_posts (title, content, excerpt, image_url, published) VALUES (?, ?, ?, ?, ?)', 
-        [title, content, excerpt, image_url, published], function(err) {
-        if (err) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        res.json({ id: this.lastID, success: true });
-    });
+    try {
+        const result = await pool.query(
+            'INSERT INTO blog_posts (title, content, excerpt, image_url, published) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+            [title, content, excerpt, image_url, published]
+        );
+        res.json({ id: result.rows[0].id, success: true });
+    } catch (err) {
+        console.error('Error creating blog post:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
 });
 
-app.put('/api/admin/blog/posts/:id', requireAuth, (req, res) => {
+app.put('/api/admin/blog/posts/:id', requireAuth, async (req, res) => {
     const { id } = req.params;
     const { title, content, excerpt, image_url, published } = req.body;
     
@@ -544,86 +526,88 @@ app.put('/api/admin/blog/posts/:id', requireAuth, (req, res) => {
         return res.status(400).json({ error: 'Title and content are required' });
     }
     
-    db.run('UPDATE blog_posts SET title = ?, content = ?, excerpt = ?, image_url = ?, published = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
-        [title, content, excerpt, image_url, published, id], function(err) {
-        if (err) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        if (this.changes === 0) {
+    try {
+        const result = await pool.query(
+            'UPDATE blog_posts SET title = $1, content = $2, excerpt = $3, image_url = $4, published = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6',
+            [title, content, excerpt, image_url, published, id]
+        );
+        if (result.rowCount === 0) {
             return res.status(404).json({ error: 'Post not found' });
         }
         res.json({ success: true });
-    });
+    } catch (err) {
+        console.error('Error updating blog post:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
 });
 
-app.delete('/api/admin/blog/posts/:id', requireAuth, (req, res) => {
+app.delete('/api/admin/blog/posts/:id', requireAuth, async (req, res) => {
     const { id } = req.params;
     
-    db.run('DELETE FROM blog_posts WHERE id = ?', [id], function(err) {
-        if (err) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        if (this.changes === 0) {
+    try {
+        const result = await pool.query('DELETE FROM blog_posts WHERE id = $1', [id]);
+        if (result.rowCount === 0) {
             return res.status(404).json({ error: 'Post not found' });
         }
         res.json({ success: true });
-    });
+    } catch (err) {
+        console.error('Error deleting blog post:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
 });
 
 // Pages API
-app.get('/api/pages', (req, res) => {
-    db.all('SELECT * FROM pages ORDER BY page_key', (err, rows) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.json(rows);
-    });
+app.get('/api/pages', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM pages ORDER BY page_key');
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching pages:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.get('/api/pages/:key', (req, res) => {
+app.get('/api/pages/:key', async (req, res) => {
     const pageKey = req.params.key;
-    db.get('SELECT * FROM pages WHERE page_key = ?', [pageKey], (err, row) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
+    try {
+        const result = await pool.query('SELECT * FROM pages WHERE page_key = $1', [pageKey]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Page not found' });
         }
-        if (!row) {
-            res.status(404).json({ error: 'Page not found' });
-            return;
-        }
-        res.json(row);
-    });
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Error fetching page:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Admin pages management API
-app.get('/api/admin/pages', requireAuth, (req, res) => {
-    db.all('SELECT * FROM pages ORDER BY page_key', (err, rows) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.json(rows);
-    });
+app.get('/api/admin/pages', requireAuth, async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM pages ORDER BY page_key');
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching admin pages:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Get single page by key (admin)
-app.get('/api/admin/pages/:key', requireAuth, (req, res) => {
+app.get('/api/admin/pages/:key', requireAuth, async (req, res) => {
     const pageKey = req.params.key;
-    db.get('SELECT * FROM pages WHERE page_key = ?', [pageKey], (err, row) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
+    try {
+        const result = await pool.query('SELECT * FROM pages WHERE page_key = $1', [pageKey]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Page not found' });
         }
-        if (!row) {
-            res.status(404).json({ error: 'Page not found' });
-            return;
-        }
-        res.json(row);
-    });
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Error fetching page:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.put('/api/admin/pages/:key', requireAuth, (req, res) => {
+app.put('/api/admin/pages/:key', requireAuth, async (req, res) => {
     const pageKey = req.params.key;
     const { title, content, image_url } = req.body;
     
@@ -631,18 +615,19 @@ app.put('/api/admin/pages/:key', requireAuth, (req, res) => {
         return res.status(400).json({ error: 'Title and content are required' });
     }
     
-    db.run('UPDATE pages SET title = ?, content = ?, image_url = ?, updated_at = CURRENT_TIMESTAMP WHERE page_key = ?', 
-        [title, content, image_url, pageKey], function(err) {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        if (this.changes === 0) {
-            res.status(404).json({ error: 'Page not found' });
-            return;
+    try {
+        const result = await pool.query(
+            'UPDATE pages SET title = $1, content = $2, image_url = $3, updated_at = CURRENT_TIMESTAMP WHERE page_key = $4',
+            [title, content, image_url, pageKey]
+        );
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Page not found' });
         }
         res.json({ success: true });
-    });
+    } catch (err) {
+        console.error('Error updating page:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Check authentication status
@@ -656,14 +641,13 @@ app.listen(PORT, () => {
 });
 
 // Graceful shutdown
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
     console.log('\nShutting down server...');
-    db.close((err) => {
-        if (err) {
-            console.error('Error closing database:', err.message);
-        } else {
-            console.log('Database connection closed');
-        }
-        process.exit(0);
-    });
+    try {
+        await pool.end();
+        console.log('Database connection pool closed');
+    } catch (err) {
+        console.error('Error closing database pool:', err.message);
+    }
+    process.exit(0);
 });
