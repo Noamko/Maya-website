@@ -1,0 +1,51 @@
+# Dependencies
+node_modules
+
+# Git
+.git
+.gitignore
+
+# Environment files
+.env
+.env.*
+
+# Database files (legacy SQLite)
+*.db
+
+# Backups
+backups/
+
+# SSL Certificates
+certbot/
+
+# Nginx config (mounted separately)
+nginx/
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Scripts (not needed in container)
+scripts/
+
+# Documentation
+*.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test files
+test/
+tests/
+coverage/
