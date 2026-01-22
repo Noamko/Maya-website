@@ -15,12 +15,6 @@ node_modules
 # Backups
 backups/
 
-# SSL Certificates
-certbot/
-
-# Nginx config (mounted separately)
-nginx/
-
 # Docker files
 Dockerfile
 docker-compose.yml
@@ -49,3 +43,7 @@ Thumbs.db
 test/
 tests/
 coverage/
+
+# Caddy data (managed by Docker volumes)
+caddy_data/
+caddy_config/

@@ -8,8 +8,8 @@
 - **בלוג** עם מאמרים על שינה ורפואה סינית
 - **מערכת ניהול תוכן** עם פאנל מנהל
 - **מסד נתונים PostgreSQL** לאחסון תוכן
-- **Nginx reverse proxy** עם תמיכה ב-HTTPS
-- **תעודות SSL אוטומטיות** עם Let's Encrypt
+- **Caddy reverse proxy** עם HTTPS אוטומטי
+- **תעודות SSL אוטומטיות** עם Let's Encrypt (ללא הגדרה ידנית!)
 - **עיצוב רספונסיבי** המתאים למובייל ודסקטופ
 - **ממשק בעברית** עם תמיכה מלאה ב-RTL
 - **Docker Compose** לפריסה פשוטה
@@ -33,48 +33,29 @@
    POSTGRES_PASSWORD=your_secure_password
    POSTGRES_DB=maya_website
    SESSION_SECRET=your_session_secret
+   DOMAIN=localhost
    DOMAIN_URL=https://localhost
    FRONTEND_URL=https://localhost
    ```
 
-3. **צור תעודות SSL לפיתוח מקומי:**
-   ```bash
-   ./scripts/generate-self-signed.sh
-   ```
-
-4. **הפעל את האפליקציה:**
+3. **הפעל את האפליקציה:**
    ```bash
    docker compose up -d --build
    ```
 
-5. **פתח בדפדפן:** https://localhost
-   > הדפדפן יציג אזהרה על תעודה עצמית - זה צפוי בפיתוח. לחץ "Advanced" והמשך.
+4. **פתח בדפדפן:** https://localhost
+   > Caddy ישתמש בתעודה עצמית אוטומטית עבור localhost
 
 ### פריסה עם SSL אמיתי (Production)
 
 1. **הגדר DNS:** כוון את הדומיין לכתובת ה-IP של השרת
 
-2. **צור קובץ `.env`:**
+2. **פרוס עם הסקריפט:**
    ```bash
-   cp .env.example .env
-   nano .env
+   ./scripts/deploy.sh yourdomain.com your@email.com
    ```
 
-3. **הגדר את הדומיין:**
-   ```env
-   DOMAIN_URL=https://yourdomain.com
-   FRONTEND_URL=https://yourdomain.com
-   ```
-
-4. **הפעל את סקריפט ה-SSL:**
-   ```bash
-   ./scripts/init-ssl.sh yourdomain.com your@email.com
-   ```
-
-5. **הפעל את האפליקציה:**
-   ```bash
-   docker compose up -d
-   ```
+   **זהו!** Caddy יקבל תעודת SSL אוטומטית מ-Let's Encrypt.
 
 ### פקודות שימושיות
 
@@ -82,8 +63,8 @@
 # הצגת לוגים
 docker compose logs -f
 
-# לוגים של nginx בלבד
-docker compose logs -f nginx
+# לוגים של Caddy בלבד
+docker compose logs -f caddy
 
 # עצירת האפליקציה
 docker compose down
@@ -93,9 +74,6 @@ docker compose down -v
 
 # הפעלה מחדש
 docker compose restart
-
-# חידוש תעודות SSL (אוטומטי, אבל אפשר ידנית)
-docker compose run --rm certbot renew
 ```
 
 ## מבנה הפרויקט
@@ -104,14 +82,9 @@ docker compose run --rm certbot renew
 maya-website/
 ├── server.js              # שרת Express.js
 ├── package.json           # הגדרות הפרויקט
-├── docker-compose.yml     # הגדרות Docker (app, db, nginx, certbot)
+├── docker-compose.yml     # הגדרות Docker (app, db, caddy)
 ├── Dockerfile             # בניית קונטיינר Node.js
-├── nginx/
-│   ├── nginx.conf         # הגדרות Nginx עם SSL
-│   └── nginx-init.conf    # הגדרות ראשוניות (HTTP בלבד)
-├── certbot/               # תעודות SSL (לא בגיט)
-│   ├── conf/              # תעודות Let's Encrypt
-│   └── www/               # אתגר ACME
+├── Caddyfile              # הגדרות Caddy (reverse proxy + SSL)
 ├── index.html             # דף הבית
 ├── about.html             # דף "עליי"
 ├── treatment.html         # דף "על הטיפול"
@@ -129,10 +102,10 @@ maya-website/
 │   ├── images/            # תמונות קבועות
 │   └── uploads/           # תמונות שהועלו
 └── scripts/
+    ├── deploy.sh          # סקריפט פריסה
+    ├── setup-server.sh    # הגדרת שרת חדש
     ├── backup.sh          # גיבוי מסד נתונים
-    ├── restore.sh         # שחזור מסד נתונים
-    ├── init-ssl.sh        # הגדרת SSL עם Let's Encrypt
-    └── generate-self-signed.sh  # תעודות עצמיות לפיתוח
+    └── restore.sh         # שחזור מסד נתונים
 ```
 
 ## ארכיטקטורת הקונטיינרים
@@ -144,8 +117,9 @@ maya-website/
                              │
                              ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                     nginx (port 80/443)                      │
-│                   SSL Termination + Proxy                    │
+│                   caddy (port 80/443)                        │
+│             Automatic HTTPS + Reverse Proxy                  │
+│              (SSL certificates handled automatically)        │
 └─────────────────────────────────────────────────────────────┘
                              │
                              ▼
@@ -158,11 +132,6 @@ maya-website/
 ┌─────────────────────────────────────────────────────────────┐
 │                      db (port 5432)                          │
 │                       PostgreSQL                             │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│                        certbot                               │
-│               SSL Certificate Renewal                        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -224,44 +193,37 @@ maya-website/
 
 ### Digital Ocean Droplet
 
-1. **התקן Docker:**
+1. **הגדר את השרת:**
    ```bash
-   curl -fsSL https://get.docker.com | sh
-   sudo usermod -aG docker $USER
+   curl -fsSL https://raw.githubusercontent.com/Noamko/Maya-website/main/scripts/setup-server.sh | bash
    newgrp docker
    ```
 
 2. **העתק את הפרויקט:**
    ```bash
-   git clone <repo-url> /var/www/maya-website
+   git clone git@github.com:Noamko/Maya-website.git /var/www/maya-website
    cd /var/www/maya-website
    ```
 
-3. **צור `.env` עם ערכים מאובטחים:**
+3. **פרוס עם דומיין:**
    ```bash
-   cp .env.example .env
-   nano .env
+   ./scripts/deploy.sh yourdomain.com admin@yourdomain.com
    ```
 
-4. **הגדר SSL עם Let's Encrypt:**
-   ```bash
-   ./scripts/init-ssl.sh yourdomain.com admin@yourdomain.com
-   ```
-
-5. **האתר זמין ב:** https://yourdomain.com
+4. **האתר זמין ב:** https://yourdomain.com
 
 ## אבטחה
 
-- **HTTPS עם TLS 1.2/1.3** - הצפנת תעבורה
+- **HTTPS אוטומטי עם TLS 1.2/1.3** - Caddy מנהל תעודות אוטומטית
 - **HSTS** - כפיית HTTPS
 - **סיסמאות מוצפנות** עם bcrypt
 - **אימות באמצעות sessions** (PostgreSQL store)
 - **הגנה מפני SQL injection** (parameterized queries)
-- **Rate limiting** בנקודות הקצה
 - **Security headers** (X-Frame-Options, X-Content-Type-Options, etc.)
 - **CORS מוגדר כראוי**
 - **Secure cookies** בסביבת production
 - **HTTP-only cookies**
+- **HTTP/3 support** - פרוטוקול מהיר יותר
 
 ## רישיון
 

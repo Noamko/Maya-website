@@ -1,0 +1,47 @@
+# Maya Website - Caddy Configuration
+# Automatic HTTPS with Let's Encrypt
+
+{
+    # Email for Let's Encrypt notifications
+    email {$ACME_EMAIL:admin@example.com}
+}
+
+# Main site
+{$DOMAIN:localhost} {
+    # Reverse proxy to Node.js app
+    reverse_proxy app:3000 {
+        # Health checks
+        health_uri /api/admin/status
+        health_interval 30s
+        health_timeout 5s
+    }
+
+    # Gzip compression
+    encode gzip
+
+    # Security headers
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=63072000"
+        -Server
+    }
+
+    # Static file caching
+    @static {
+        path *.jpg *.jpeg *.png *.gif *.ico *.css *.js *.woff *.woff2 *.ttf *.svg *.webp
+    }
+    header @static Cache-Control "public, max-age=2592000, immutable"
+
+    # Logging
+    log {
+        output stdout
+        format console
+    }
+}
+
+# Redirect www to non-www
+www.{$DOMAIN:localhost} {
+    redir https://{$DOMAIN}{uri} permanent
+}

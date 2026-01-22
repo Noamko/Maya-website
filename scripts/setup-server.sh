@@ -256,13 +256,17 @@ SESSION_SECRET=$SESSION_SECRET
 
 # Domain Configuration
 # UPDATE THESE WITH YOUR ACTUAL DOMAIN!
+DOMAIN=localhost
 DOMAIN_URL=https://localhost
 FRONTEND_URL=https://localhost
+
+# Let's Encrypt Email (required for production SSL)
+ACME_EMAIL=admin@example.com
 EOF
     
     chmod 600 "$ENV_FILE"
     log_success "Generated .env file with secure credentials"
-    log_warning "Remember to update DOMAIN_URL and FRONTEND_URL with your actual domain!"
+    log_warning "Remember to update DOMAIN, DOMAIN_URL, FRONTEND_URL, and ACME_EMAIL with your actual values!"
 }
 
 # Print summary
@@ -283,15 +287,14 @@ print_summary() {
     echo "3. Clone the repository (if not already done):"
     echo "   ${YELLOW}git clone <your-repo-url> .${NC}"
     echo ""
-    echo "4. Update .env with your domain:"
+    echo "4. Update .env with your domain and email:"
     echo "   ${YELLOW}nano .env${NC}"
+    echo "   Set DOMAIN, DOMAIN_URL, FRONTEND_URL, and ACME_EMAIL"
     echo ""
-    echo "5. For local testing with self-signed SSL:"
-    echo "   ${YELLOW}./scripts/generate-self-signed.sh${NC}"
-    echo "   ${YELLOW}docker compose up -d${NC}"
+    echo "5. Deploy the application:"
+    echo "   ${YELLOW}./scripts/deploy.sh yourdomain.com your@email.com${NC}"
     echo ""
-    echo "6. For production with Let's Encrypt SSL:"
-    echo "   ${YELLOW}./scripts/init-ssl.sh yourdomain.com your@email.com${NC}"
+    echo "Caddy will automatically obtain SSL certificates from Let's Encrypt!"
     echo ""
     echo "Your site will be available at:"
     echo "   ${GREEN}https://yourdomain.com${NC}"
